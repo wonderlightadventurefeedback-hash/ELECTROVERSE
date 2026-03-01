@@ -1,0 +1,868 @@
+{
+  "entities": {
+    "StudentProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StudentProfile",
+      "type": "object",
+      "description": "Represents a student enrolled in the B.Tech Electrical Department.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the StudentProfile entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the student."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the student."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the student.",
+          "format": "email"
+        },
+        "studentIdNumber": {
+          "type": "string",
+          "description": "The unique institutional student ID number."
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "The student's date of birth.",
+          "format": "date"
+        },
+        "address": {
+          "type": "string",
+          "description": "The physical address of the student."
+        },
+        "departmentName": {
+          "type": "string",
+          "description": "The name of the department the student belongs to (e.g., 'B.Tech Electrical Department')."
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "studentIdNumber",
+        "departmentName"
+      ]
+    },
+    "TeacherProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TeacherProfile",
+      "type": "object",
+      "description": "Represents a teacher in the B.Tech Electrical Department.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the TeacherProfile entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the teacher."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the teacher."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the teacher.",
+          "format": "email"
+        },
+        "employeeIdNumber": {
+          "type": "string",
+          "description": "The unique institutional employee ID number for the teacher."
+        },
+        "designation": {
+          "type": "string",
+          "description": "The professional designation or title of the teacher (e.g., 'Professor', 'Assistant Professor')."
+        },
+        "dateOfJoining": {
+          "type": "string",
+          "description": "The date the teacher joined the department.",
+          "format": "date"
+        },
+        "departmentName": {
+          "type": "string",
+          "description": "The name of the department the teacher belongs to (e.g., 'B.Tech Electrical Department')."
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "employeeIdNumber",
+        "designation",
+        "departmentName"
+      ]
+    },
+    "DepartmentInfo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DepartmentInfo",
+      "type": "object",
+      "description": "Stores general information about the department, such as 'About Us' and 'Contact Us' details.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the DepartmentInfo entity. (Typically a single record)."
+        },
+        "name": {
+          "type": "string",
+          "description": "The official name of the department (e.g., 'B.Tech Electrical Engineering Department')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the department, suitable for an 'About Us' section."
+        },
+        "missionStatement": {
+          "type": "string",
+          "description": "The mission statement of the department."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "The primary contact email address for the department.",
+          "format": "email"
+        },
+        "contactPhone": {
+          "type": "string",
+          "description": "The primary contact phone number for the department."
+        },
+        "address": {
+          "type": "string",
+          "description": "The physical address of the department."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "contactEmail",
+        "contactPhone",
+        "address"
+      ]
+    },
+    "NewsPost": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NewsPost",
+      "type": "object",
+      "description": "Represents an announcement or news item posted by the department.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the NewsPost entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the news post."
+        },
+        "content": {
+          "type": "string",
+          "description": "The full content of the news post."
+        },
+        "publishDate": {
+          "type": "string",
+          "description": "The date and time when the news post was published.",
+          "format": "date-time"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "The name of the author or publishing entity (e.g., 'Department Administration')."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Optional URL for a featured image related to the news post.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "content",
+        "publishDate",
+        "authorName"
+      ]
+    },
+    "Image": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Image",
+      "type": "object",
+      "description": "Stores general image assets used across the website, such as for carousels and galleries.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Image entity."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL where the image is hosted.",
+          "format": "uri"
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternative text for the image, important for accessibility and SEO."
+        },
+        "caption": {
+          "type": "string",
+          "description": "An optional caption to display with the image."
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "The date and time when the image was uploaded.",
+          "format": "date-time"
+        },
+        "category": {
+          "type": "string",
+          "description": "A category to help organize images (e.g., 'homepage-carousel', 'gallery-achievement', 'student-project')."
+        }
+      },
+      "required": [
+        "id",
+        "url",
+        "altText",
+        "uploadDate"
+      ]
+    },
+    "GalleryItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GalleryItem",
+      "type": "object",
+      "description": "Represents an item specifically for the visual achievement gallery, linking to an image and providing context.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the GalleryItem entity."
+        },
+        "imageId": {
+          "type": "string",
+          "description": "Reference to the Image entity that this gallery item displays. (Relationship: Image 1:N GalleryItem)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the gallery item, describing the event or achievement."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description or details about the event/achievement pictured."
+        },
+        "eventType": {
+          "type": "string",
+          "description": "The type of event or achievement (e.g., 'Achievement', 'Student Activity', 'Campus Event')."
+        },
+        "eventDate": {
+          "type": "string",
+          "description": "The date when the event or achievement took place.",
+          "format": "date"
+        }
+      },
+      "required": [
+        "id",
+        "imageId",
+        "title",
+        "description",
+        "eventType",
+        "eventDate"
+      ]
+    },
+    "Semester": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Semester",
+      "type": "object",
+      "description": "Defines an academic semester within the institution's calendar.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Semester entity."
+        },
+        "semesterNumber": {
+          "type": "number",
+          "description": "The sequential number of the semester (e.g., 1, 2, ..., 8)."
+        },
+        "academicYear": {
+          "type": "string",
+          "description": "The academic year to which this semester belongs (e.g., '2023-2024')."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The start date of the semester.",
+          "format": "date"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date of the semester.",
+          "format": "date"
+        }
+      },
+      "required": [
+        "id",
+        "semesterNumber",
+        "academicYear",
+        "startDate",
+        "endDate"
+      ]
+    },
+    "Course": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Course",
+      "type": "object",
+      "description": "Defines a master course, representing a curriculum item offered by the department.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Course entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the course (e.g., 'Basic Electrical Engineering')."
+        },
+        "courseCode": {
+          "type": "string",
+          "description": "The unique departmental code for the course (e.g., 'EE101')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the course content and objectives."
+        },
+        "credits": {
+          "type": "number",
+          "description": "The number of academic credits awarded for completing the course."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "courseCode",
+        "description",
+        "credits"
+      ]
+    },
+    "CourseOffering": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CourseOffering",
+      "type": "object",
+      "description": "Represents a specific instance of a course being taught in a particular semester by a teacher.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CourseOffering entity."
+        },
+        "courseId": {
+          "type": "string",
+          "description": "Reference to the master Course definition. (Relationship: Course 1:N CourseOffering)"
+        },
+        "semesterId": {
+          "type": "string",
+          "description": "Reference to the Semester in which this course is offered. (Relationship: Semester 1:N CourseOffering)"
+        },
+        "teacherId": {
+          "type": "string",
+          "description": "Reference to the TeacherProfile responsible for teaching this course offering. (Relationship: TeacherProfile 1:N CourseOffering)"
+        },
+        "location": {
+          "type": "string",
+          "description": "The physical or virtual location where the course is conducted (e.g., 'Lab 301', 'Online')."
+        },
+        "schedule": {
+          "type": "string",
+          "description": "A description of the course's schedule (e.g., 'Mon, Wed, Fri 10:00-11:00')."
+        }
+      },
+      "required": [
+        "id",
+        "courseId",
+        "semesterId",
+        "teacherId",
+        "location",
+        "schedule"
+      ]
+    },
+    "Enrollment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Enrollment",
+      "type": "object",
+      "description": "Links a student to a specific course offering, representing their enrollment.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Enrollment entity."
+        },
+        "studentId": {
+          "type": "string",
+          "description": "Reference to the StudentProfile of the enrolled student. (Relationship: StudentProfile 1:N Enrollment)"
+        },
+        "courseOfferingId": {
+          "type": "string",
+          "description": "Reference to the CourseOffering the student is enrolled in. (Relationship: CourseOffering 1:N Enrollment)"
+        },
+        "enrollmentDate": {
+          "type": "string",
+          "description": "The date when the student enrolled in this course offering.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "studentId",
+        "courseOfferingId",
+        "enrollmentDate"
+      ]
+    },
+    "Examination": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Examination",
+      "type": "object",
+      "description": "Defines a specific examination event for a course offering.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Examination entity."
+        },
+        "courseOfferingId": {
+          "type": "string",
+          "description": "Reference to the CourseOffering for which this examination is conducted. (Relationship: CourseOffering 1:N Examination)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the examination (e.g., 'First Internal Exam', 'Semester End Exam')."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of examination (e.g., 'Internal', 'Semester', 'Practical')."
+        },
+        "maxMarks": {
+          "type": "number",
+          "description": "The maximum marks obtainable in this examination."
+        },
+        "examDate": {
+          "type": "string",
+          "description": "The date and time when the examination was held.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "courseOfferingId",
+        "name",
+        "type",
+        "maxMarks",
+        "examDate"
+      ]
+    },
+    "Grade": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Grade",
+      "type": "object",
+      "description": "Records a student's marks obtained in a specific examination.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Grade entity."
+        },
+        "enrollmentId": {
+          "type": "string",
+          "description": "Reference to the Enrollment record of the student. (Relationship: Enrollment 1:N Grade)"
+        },
+        "examinationId": {
+          "type": "string",
+          "description": "Reference to the Examination for which the grade is recorded. (Relationship: Examination 1:N Grade)"
+        },
+        "marksObtained": {
+          "type": "number",
+          "description": "The marks obtained by the student in the examination."
+        },
+        "gradeLetter": {
+          "type": "string",
+          "description": "The corresponding letter grade (e.g., 'A', 'B+', 'C')."
+        },
+        "recordedDate": {
+          "type": "string",
+          "description": "The date when this grade was officially recorded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "enrollmentId",
+        "examinationId",
+        "marksObtained",
+        "recordedDate"
+      ]
+    },
+    "AttendanceRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AttendanceRecord",
+      "type": "object",
+      "description": "Records a student's attendance for a specific session or date within an enrolled course.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AttendanceRecord entity."
+        },
+        "enrollmentId": {
+          "type": "string",
+          "description": "Reference to the Enrollment record of the student. (Relationship: Enrollment 1:N AttendanceRecord)"
+        },
+        "date": {
+          "type": "string",
+          "description": "The date of the attendance record.",
+          "format": "date"
+        },
+        "status": {
+          "type": "string",
+          "description": "The attendance status (e.g., 'Present', 'Absent', 'Late', 'Excused')."
+        },
+        "sessionTopic": {
+          "type": "string",
+          "description": "Optional brief description of the topic covered in the session."
+        }
+      },
+      "required": [
+        "id",
+        "enrollmentId",
+        "date",
+        "status"
+      ]
+    },
+    "ElectricalEngineeringTopic": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ElectricalEngineeringTopic",
+      "type": "object",
+      "description": "Represents a specific topic within Electrical Engineering for the AI-powered tool's knowledge base.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ElectricalEngineeringTopic entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name or title of the electrical engineering topic (e.g., 'Ohm's Law', 'Circuit Analysis')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A comprehensive explanation or definition of the topic."
+        },
+        "keywords": {
+          "type": "array",
+          "description": "A list of keywords associated with the topic for searchability.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description"
+      ]
+    },
+    "AcademicResource": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AcademicResource",
+      "type": "object",
+      "description": "Represents an academic resource (e.g., article, video) related to electrical engineering topics.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AcademicResource entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the academic resource."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief summary or description of the resource."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL where the academic resource can be accessed.",
+          "format": "uri"
+        },
+        "resourceType": {
+          "type": "string",
+          "description": "The type of the resource (e.g., 'Article', 'Video', 'Simulation', 'Textbook Chapter')."
+        },
+        "topicIds": {
+          "type": "array",
+          "description": "References to ElectricalEngineeringTopic entities that this resource covers. (Relationship: ElectricalEngineeringTopic N:N AcademicResource)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "url",
+        "resourceType",
+        "topicIds"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/studentProfile",
+        "definition": {
+          "entityName": "StudentProfile",
+          "schema": {
+            "$ref": "#/backend/entities/StudentProfile"
+          },
+          "description": "Private profile information for a student. Document ID (`userId`) MUST match `request.auth.uid`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user (from Firebase Authentication)."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/teacherProfile",
+        "definition": {
+          "entityName": "TeacherProfile",
+          "schema": {
+            "$ref": "#/backend/entities/TeacherProfile"
+          },
+          "description": "Private profile information for a teacher. Document ID (`userId`) MUST match `request.auth.uid`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user (from Firebase Authentication)."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{adminId}",
+        "definition": {
+          "entityName": "AdminRole",
+          "schema": {
+            "$ref": "#/backend/entities/AdminRole"
+          },
+          "description": "Document's existence grants administrator privileges to the `adminId` (matching Firebase Auth UID).",
+          "params": [
+            {
+              "name": "adminId",
+              "description": "The unique identifier of the user who is an administrator."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/departmentInfo/general",
+        "definition": {
+          "entityName": "DepartmentInfo",
+          "schema": {
+            "$ref": "#/backend/entities/DepartmentInfo"
+          },
+          "description": "General public information about the department (e.g., About Us, Contact Us). Expected to be a single document with ID 'general'."
+        }
+      },
+      {
+        "path": "/newsPosts/{newsPostId}",
+        "definition": {
+          "entityName": "NewsPost",
+          "schema": {
+            "$ref": "#/backend/entities/NewsPost"
+          },
+          "description": "Publicly viewable news and announcements posted by the department.",
+          "params": [
+            {
+              "name": "newsPostId",
+              "description": "The unique identifier for a news post."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/images/{imageId}",
+        "definition": {
+          "entityName": "Image",
+          "schema": {
+            "$ref": "#/backend/entities/Image"
+          },
+          "description": "General image assets used across the website for public display (e.g., homepage carousels, galleries).",
+          "params": [
+            {
+              "name": "imageId",
+              "description": "The unique identifier for an image."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/galleryItems/{galleryItemId}",
+        "definition": {
+          "entityName": "GalleryItem",
+          "schema": {
+            "$ref": "#/backend/entities/GalleryItem"
+          },
+          "description": "Items specifically for the visual achievement gallery, linking to Image entities for display. Publicly readable.",
+          "params": [
+            {
+              "name": "galleryItemId",
+              "description": "The unique identifier for a gallery item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/semesters/{semesterId}",
+        "definition": {
+          "entityName": "Semester",
+          "schema": {
+            "$ref": "#/backend/entities/Semester"
+          },
+          "description": "Definitions of academic semesters (e.g., '2023-2024 Fall'). Readable by all authenticated users.",
+          "params": [
+            {
+              "name": "semesterId",
+              "description": "The unique identifier for a semester."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/courses/{courseId}",
+        "definition": {
+          "entityName": "Course",
+          "schema": {
+            "$ref": "#/backend/entities/Course"
+          },
+          "description": "Master definitions of courses offered by the department. Readable by all authenticated users.",
+          "params": [
+            {
+              "name": "courseId",
+              "description": "The unique identifier for a course."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/courseOfferings/{courseOfferingId}",
+        "definition": {
+          "entityName": "CourseOffering",
+          "schema": {
+            "$ref": "#/backend/entities/CourseOffering"
+          },
+          "description": "Specific instances of a course being taught in a semester. Includes `teacherId` for authorization independence. Readable by all authenticated users.",
+          "params": [
+            {
+              "name": "courseOfferingId",
+              "description": "The unique identifier for a course offering."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/enrollments/{enrollmentId}",
+        "definition": {
+          "entityName": "Enrollment",
+          "schema": {
+            "$ref": "#/backend/entities/Enrollment"
+          },
+          "description": "Records a student's enrollment in a course offering. Includes denormalized `studentId` and `teacherId` (from `CourseOffering`) for authorization independence.",
+          "params": [
+            {
+              "name": "enrollmentId",
+              "description": "The unique identifier for an enrollment record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/examinations/{examinationId}",
+        "definition": {
+          "entityName": "Examination",
+          "schema": {
+            "$ref": "#/backend/entities/Examination"
+          },
+          "description": "Defines a specific examination event for a course offering. Includes denormalized `teacherId` (from `CourseOffering`) for authorization independence.",
+          "params": [
+            {
+              "name": "examinationId",
+              "description": "The unique identifier for an examination."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/grades/{gradeId}",
+        "definition": {
+          "entityName": "Grade",
+          "schema": {
+            "$ref": "#/backend/entities/Grade"
+          },
+          "description": "Records a student's marks for an examination. Includes denormalized `studentId` (from `Enrollment`) and `teacherId` (from `Examination` via `CourseOffering`) for authorization independence.",
+          "params": [
+            {
+              "name": "gradeId",
+              "description": "The unique identifier for a grade record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/attendanceRecords/{attendanceRecordId}",
+        "definition": {
+          "entityName": "AttendanceRecord",
+          "schema": {
+            "$ref": "#/backend/entities/AttendanceRecord"
+          },
+          "description": "Records a student's attendance. Includes denormalized `studentId` (from `Enrollment`) and `teacherId` (from `Enrollment` via `CourseOffering`) for authorization independence.",
+          "params": [
+            {
+              "name": "attendanceRecordId",
+              "description": "The unique identifier for an attendance record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/electricalEngineeringTopics/{topicId}",
+        "definition": {
+          "entityName": "ElectricalEngineeringTopic",
+          "schema": {
+            "$ref": "#/backend/entities/ElectricalEngineeringTopic"
+          },
+          "description": "Knowledge base topics for the AI-powered tutor. Publicly readable.",
+          "params": [
+            {
+              "name": "topicId",
+              "description": "The unique identifier for an electrical engineering topic."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/academicResources/{resourceId}",
+        "definition": {
+          "entityName": "AcademicResource",
+          "schema": {
+            "$ref": "#/backend/entities/AcademicResource"
+          },
+          "description": "Academic resources (articles, videos, etc.) related to electrical engineering topics. Publicly readable.",
+          "params": [
+            {
+              "name": "resourceId",
+              "description": "The unique identifier for an academic resource."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure for SparkLux Academics prioritizes secure, scalable, and debuggable authorization by strictly adhering to the core design principles and strategy mandates. \n\n**Authorization Independence (CRITICAL) via Denormalization:**\nThe most critical aspect of this design is the strategic denormalization of authorization context. For entities like `Enrollment`, `Examination`, `Grade`, and `AttendanceRecord`, which involve both students and teachers, the `studentId` (representing the student owner) and `teacherId` (representing the course-offering teacher) are explicitly denormalized and stored directly within each relevant document. For example:\n*   An `Enrollment` document will include `studentId` and the `teacherId` from its associated `CourseOffering`.\n*   `Examination` documents will include the `teacherId` responsible for the `CourseOffering`.\n*   `Grade` and `AttendanceRecord` documents will contain both `studentId` (from `Enrollment`) and `teacherId` (from `Examination` or `Enrollment` via `CourseOffering`).\nThis eliminates the need for `get()` operations in security rules to retrieve parent or related document data for authorization checks. For instance, a rule for `Grades` can directly check `resource.data.studentId == request.auth.uid` or `resource.data.teacherId == request.auth.uid`, ensuring atomic and performant rule evaluation.\n\n**QAPs (Rules are not Filters) and Structural Segregation:**\n1.  **Public/General Information:** Collections like `/departmentInfo`, `/newsPosts`, `/images`, `/galleryItems`, `/electricalEngineeringTopics`, and `/academicResources` are designed for public read access. This structural segregation ensures that public data can be listed and retrieved efficiently without complex filtering rules, fulfilling the QAP principle.\n2.  **Authenticated User Access:** `/semesters`, `/courses`, and `/courseOfferings` are readable by all authenticated users (students and teachers), allowing them to browse academic information. Write access is restricted to authorized roles (e.g., teachers for `courseOfferings`). Secure `list` operations are possible as data is either public or accessible to all authenticated users, with client-side filters applied for specific views.\n3.  **User-Specific Private Data:** `StudentProfile` and `TeacherProfile` are stored under `/users/{userId}/studentProfile` and `/users/{userId}/teacherProfile` respectively. This path-based ownership (`{userId}` matching `request.auth.uid`) intrinsically supports secure `list` operations for individual users to access their own profiles.\n4.  **Role-Based / Relationship-Based Data:** For `Enrollment`, `Examination`, `Grade`, and `AttendanceRecord` collections, the denormalized `studentId` and `teacherId` fields enable robust and secure `list` queries. Students can query `enrollments` or `grades` using `where(\"studentId\", \"==\", request.auth.uid)`, and teachers can query using `where(\"teacherId\", \"==\", request.auth.uid)`. These queries are efficiently indexed and respect security rules based on the denormalized fields, effectively addressing the QAP mandate.\n\n**DBAC and Invariants:**\n*   **DBAC:** Global administrative roles are managed via an existence check on `/roles_admin/{uid}`. Student and teacher roles are implicitly handled by the existence of `/users/{uid}/studentProfile` or `/users/{uid}/teacherProfile` and, more importantly, by the denormalized `studentId` and `teacherId` fields on academic operational documents. This avoids custom claims and relies solely on `request.auth.uid` and database content.\n*   **Invariants:** Ownership (`studentId`, `teacherId`), timestamps (e.g., `publishDate`, `recordedDate`), and denormalized data (`teacherId` in `Enrollment`, `Examination`, `Grade`, `AttendanceRecord`) are explicitly stored, making it easier to enforce data integrity and ownership rules. The use of explicit `status` fields is not directly applicable to the current entities but would be a natural extension if needed for workflow states."
+  }
+}

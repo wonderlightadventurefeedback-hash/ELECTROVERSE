@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from "next/link";
-import { Zap, Menu, UserCircle, Search } from "lucide-react";
+import { Zap, Menu, UserCircle, Search, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +20,7 @@ const NAV_LINKS = [
   { name: "About Us", href: "/about" },
   { name: "News", href: "/news" },
   { name: "Gallery", href: "/gallery" },
+  { name: "Results", href: "/dashboard/student" },
   { name: "Contact", href: "/contact" },
 ];
 
@@ -106,11 +108,19 @@ export function Navbar() {
                   <Link href="/auth/signup" onClick={() => setIsOpen(false)} className="block">
                     <Button className="w-full bg-primary accent-glow">Join Now</Button>
                   </Link>
-                  <Link href="/dashboard/ai-tutor" onClick={() => setIsOpen(false)} className="block">
-                    <Button variant="outline" className="w-full border-secondary/30 text-secondary">
-                      Access AI Tutor
-                    </Button>
-                  </Link>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    <Link href="/dashboard/student" onClick={() => setIsOpen(false)} className="block">
+                      <Button variant="outline" className="w-full border-secondary/30 text-secondary gap-2">
+                        <FileText className="h-4 w-4" /> Check Exam Results
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/ai-tutor" onClick={() => setIsOpen(false)} className="block">
+                      <Button variant="outline" className="w-full border-secondary/30 text-secondary">
+                        Access AI Tutor
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </SheetContent>

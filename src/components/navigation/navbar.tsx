@@ -20,7 +20,7 @@ const NAV_LINKS = [
   { name: "About Us", href: "/about" },
   { name: "News", href: "/news" },
   { name: "Gallery", href: "/gallery" },
-  { name: "Results", href: "/dashboard/student" },
+  { name: "Results", href: "/results" },
   { name: "Contact", href: "/contact" },
 ];
 
@@ -110,7 +110,7 @@ export function Navbar() {
                   </Link>
                   
                   <div className="grid grid-cols-1 gap-3">
-                    <Link href="/dashboard/student" onClick={() => setIsOpen(false)} className="block">
+                    <Link href="/results" onClick={() => setIsOpen(false)} className="block">
                       <Button variant="outline" className="w-full border-secondary/30 text-secondary gap-2">
                         <FileText className="h-4 w-4" /> Check Exam Results
                       </Button>

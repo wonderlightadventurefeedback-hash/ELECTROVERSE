@@ -107,15 +107,6 @@ export default function ResultsPage() {
             </div>
           </CardContent>
         </Card>
-
-        <div className="pt-6 border-t border-slate-200 dark:border-border">
-          <p className="text-sm text-[#3E6BEC] font-medium">
-            For any query: Please email at :{" "}
-            <a href="mailto:students@bput.ac.in" className="hover:underline font-bold">
-              students@bput.ac.in
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );

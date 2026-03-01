@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Zap, User, Mail, Lock, ShieldCheck, GraduationCap, Briefcase } from "lucide-react";
+import { Zap, User, Mail, Lock, ShieldCheck, GraduationCap, Briefcase, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -27,7 +27,7 @@ export default function SignupPage() {
 
   return (
     <div className="container mx-auto px-4 min-h-[80vh] flex items-center justify-center py-12">
-      <Card className="w-full max-w-md bg-card border-border shadow-2xl">
+      <Card className="w-full max-w-lg bg-card border-border shadow-2xl">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-primary/10 rounded-2xl">
@@ -39,11 +39,11 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
-            <div className="space-y-3 pb-2">
+            <div className="space-y-3 pb-4">
               <Label className="text-sm font-medium">Select Your Role</Label>
               <RadioGroup 
                 defaultValue="student" 
-                className="grid grid-cols-2 gap-4"
+                className="grid grid-cols-3 gap-4"
                 onValueChange={(value) => setFormData({...formData, role: value})}
               >
                 <div>
@@ -53,7 +53,7 @@ export default function SignupPage() {
                     className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-background p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-secondary [&:has([data-state=checked])]:border-secondary cursor-pointer transition-all"
                   >
                     <GraduationCap className="mb-2 h-6 w-6 text-secondary" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Student</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Student</span>
                   </Label>
                 </div>
                 <div>
@@ -63,7 +63,17 @@ export default function SignupPage() {
                     className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-background p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-secondary [&:has([data-state=checked])]:border-secondary cursor-pointer transition-all"
                   >
                     <Briefcase className="mb-2 h-6 w-6 text-secondary" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Teacher</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Teacher</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="admin" id="admin" className="peer sr-only" />
+                  <Label
+                    htmlFor="admin"
+                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-background p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-secondary [&:has([data-state=checked])]:border-secondary cursor-pointer transition-all"
+                  >
+                    <ShieldAlert className="mb-2 h-6 w-6 text-secondary" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Admin</span>
                   </Label>
                 </div>
               </RadioGroup>

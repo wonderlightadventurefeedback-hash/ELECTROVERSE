@@ -7,18 +7,52 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Zap, Mail, Lock, GraduationCap, Briefcase, ShieldAlert } from "lucide-react";
+import { Zap, Mail, Lock, GraduationCap, Briefcase, ShieldAlert, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic for Firebase Auth will go here
-    console.log("Login attempted for role:", role, "with email:", email);
+    setIsLoading(true);
+
+    // Simulate authentication delay
+    setTimeout(() => {
+      // Check for specific Admin credentials provided by user
+      if (
+        role === "admin" && 
+        email === "nalandaeeconnect@gmail.com" && 
+        password === "Nalanda@2026"
+      ) {
+        toast({
+          title: "Admin Access Granted",
+          description: "Welcome to the Nalanda EE Connect Admin Panel.",
+        });
+        router.push("/dashboard/admin");
+      } else if (email && password) {
+        // Mock success for other roles for prototyping
+        toast({
+          title: "Login Successful",
+          description: `Welcome back! Redirecting to your ${role} portal...`,
+        });
+        router.push(role === "student" ? "/dashboard/student" : "/");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Authentication Failed",
+          description: "Please check your credentials and try again.",
+        });
+      }
+      setIsLoading(false);
+    }, 1200);
   };
 
   return (
@@ -76,7 +110,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Institutional Email</label>
+              <Label className="text-sm font-medium">Institutional Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -91,7 +125,7 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Password</label>
+                <Label className="text-sm font-medium">Password</Label>
                 <Link href="#" className="text-xs text-secondary hover:underline">Forgot password?</Link>
               </div>
               <div className="relative">
@@ -106,8 +140,13 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 h-12 text-lg accent-glow">
-              Sign In
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary/90 h-12 text-lg accent-glow"
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : null}
+              {isLoading ? "Authenticating..." : "Sign In"}
             </Button>
           </form>
           <div className="mt-8 pt-6 border-t border-border text-center">

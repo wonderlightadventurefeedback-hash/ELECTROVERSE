@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, Menu, UserCircle } from "lucide-react";
+import { Zap, Menu, UserCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -72,20 +73,45 @@ export function Navbar() {
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-6 mt-12">
-                {NAV_LINKS.map((link) => (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    onClick={() => setIsOpen(false)}
-                    className="text-lg font-medium hover:text-secondary transition-colors"
+                <div className="relative flex items-center">
+                  <Input 
+                    placeholder="Search records..." 
+                    className="bg-card border-border pr-10 focus-visible:ring-secondary/50"
+                  />
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="absolute right-1 text-muted-foreground hover:text-secondary"
                   >
-                    {link.name}
-                  </Link>
-                ))}
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="flex flex-col gap-4">
+                  {NAV_LINKS.map((link) => (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className="text-lg font-medium hover:text-secondary transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
+
                 <hr className="border-border" />
-                <Link href="/auth/signup" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full bg-primary">Join Now</Button>
-                </Link>
+                
+                <div className="space-y-4">
+                  <Link href="/auth/signup" onClick={() => setIsOpen(false)} className="block">
+                    <Button className="w-full bg-primary accent-glow">Join Now</Button>
+                  </Link>
+                  <Link href="/dashboard/ai-tutor" onClick={() => setIsOpen(false)} className="block">
+                    <Button variant="outline" className="w-full border-secondary/30 text-secondary">
+                      Access AI Tutor
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </SheetContent>
           </Sheet>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -12,6 +11,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useState } from "react";
+import GooeyNav from "@/components/ui/gooey-nav";
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
@@ -35,31 +35,27 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium hover:text-secondary transition-colors"
-            >
-              {link.name}
-            </Link>
-          ))}
+        <div className="hidden lg:flex items-center gap-4">
+          <GooeyNav 
+            items={NAV_LINKS.map(link => ({ label: link.name, href: link.href }))} 
+          />
           <div className="h-6 w-px bg-border mx-2" />
-          <Link href="/auth/login">
-            <Button variant="ghost" className="hover:bg-primary/20">
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/auth/signup">
-            <Button className="bg-primary hover:bg-primary/90 accent-glow">
-              Sign Up
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/auth/login">
+              <Button variant="ghost" className="hover:bg-primary/20 text-xs h-9">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/auth/signup">
+              <Button size="sm" className="bg-primary hover:bg-primary/90 accent-glow text-xs h-9">
+                Sign Up
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Mobile Nav */}
-        <div className="md:hidden flex items-center gap-4">
+        <div className="lg:hidden flex items-center gap-4">
           <Link href="/auth/login">
             <UserCircle className="h-6 w-6 text-secondary" />
           </Link>

@@ -5,7 +5,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, User, Mail, Lock, ShieldCheck } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Zap, User, Mail, Lock, ShieldCheck, GraduationCap, Briefcase } from "lucide-react";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -13,7 +15,8 @@ export default function SignupPage() {
     fullName: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    role: "student"
   });
 
   const handleSignup = (e: React.FormEvent) => {
@@ -32,12 +35,42 @@ export default function SignupPage() {
             </div>
           </div>
           <CardTitle className="font-headline text-3xl font-bold">Join SparkLux</CardTitle>
-          <CardDescription>Create your student or faculty account today</CardDescription>
+          <CardDescription>Create your academic account today</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
+            <div className="space-y-3 pb-2">
+              <Label className="text-sm font-medium">Select Your Role</Label>
+              <RadioGroup 
+                defaultValue="student" 
+                className="grid grid-cols-2 gap-4"
+                onValueChange={(value) => setFormData({...formData, role: value})}
+              >
+                <div>
+                  <RadioGroupItem value="student" id="student" className="peer sr-only" />
+                  <Label
+                    htmlFor="student"
+                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-background p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-secondary [&:has([data-state=checked])]:border-secondary cursor-pointer transition-all"
+                  >
+                    <GraduationCap className="mb-2 h-6 w-6 text-secondary" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Student</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="teacher" id="teacher" className="peer sr-only" />
+                  <Label
+                    htmlFor="teacher"
+                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-background p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-secondary [&:has([data-state=checked])]:border-secondary cursor-pointer transition-all"
+                  >
+                    <Briefcase className="mb-2 h-6 w-6 text-secondary" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Teacher</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Full Name</label>
+              <Label className="text-sm font-medium">Full Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -50,7 +83,7 @@ export default function SignupPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Institutional Email</label>
+              <Label className="text-sm font-medium">Institutional Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -64,7 +97,7 @@ export default function SignupPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Password</label>
+              <Label className="text-sm font-medium">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -78,7 +111,7 @@ export default function SignupPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Confirm Password</label>
+              <Label className="text-sm font-medium">Confirm Password</Label>
               <div className="relative">
                 <ShieldCheck className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 

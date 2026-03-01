@@ -12,18 +12,48 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Search, FileX } from "lucide-react";
 
 export default function ResultsPage() {
   const [session, setSession] = useState("");
   const [examType, setExamType] = useState("");
   const [regNo, setRegNo] = useState("");
   const [dob, setDob] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchTriggered, setSearchTriggered] = useState(false);
+  const { toast } = useToast();
 
   const handleReset = () => {
     setSession("");
     setExamType("");
     setRegNo("");
     setDob("");
+    setSearchTriggered(false);
+  };
+
+  const handleViewResult = () => {
+    if (!session || !examType || !regNo || !dob) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please fill in all fields to view the result.",
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchTriggered(false);
+
+    // Simulate search delay
+    setTimeout(() => {
+      setIsSearching(false);
+      setSearchTriggered(true);
+      toast({
+        title: "Search Complete",
+        description: "No records found for the provided information.",
+      });
+    }, 1500);
   };
 
   return (
@@ -37,7 +67,6 @@ export default function ResultsPage() {
           <CardContent className="p-6">
             <div className="flex flex-col gap-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-                {/* Session Field */}
                 <div className="relative">
                   <label className="absolute -top-2 left-3 bg-white dark:bg-card px-1 text-[11px] text-muted-foreground font-semibold z-10 transition-all">
                     Session
@@ -54,7 +83,6 @@ export default function ResultsPage() {
                   </Select>
                 </div>
 
-                {/* Exam Type Field (Internal/Semester) */}
                 <div className="relative">
                   <label className="absolute -top-2 left-3 bg-white dark:bg-card px-1 text-[11px] text-muted-foreground font-semibold z-10 transition-all">
                     Exam Type
@@ -70,7 +98,6 @@ export default function ResultsPage() {
                   </Select>
                 </div>
 
-                {/* Reg No Field */}
                 <div className="w-full">
                   <Input
                     placeholder="Reg No."
@@ -80,7 +107,6 @@ export default function ResultsPage() {
                   />
                 </div>
 
-                {/* DOB Field */}
                 <div className="w-full">
                   <Input
                     placeholder="DOB (DD-MM-YYYY)"
@@ -91,9 +117,17 @@ export default function ResultsPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex flex-wrap gap-4 pt-2">
-                <Button className="bg-[#7F56D9] hover:bg-[#6941C6] text-white px-10 h-12 rounded-md font-bold shadow-md">
+                <Button 
+                  onClick={handleViewResult}
+                  disabled={isSearching}
+                  className="bg-[#7F56D9] hover:bg-[#6941C6] text-white px-10 h-12 rounded-md font-bold shadow-md min-w-[160px]"
+                >
+                  {isSearching ? (
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  ) : (
+                    <Search className="h-5 w-5 mr-2" />
+                  )}
                   View Result
                 </Button>
                 <Button
@@ -107,6 +141,20 @@ export default function ResultsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {searchTriggered && (
+          <div className="flex flex-col items-center justify-center py-20 bg-card/20 rounded-xl border border-dashed border-border text-center space-y-4">
+            <div className="p-4 bg-muted/50 rounded-full">
+              <FileX className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold">No Records Found</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                We couldn't find any results for Registration No. <span className="text-secondary font-mono">{regNo}</span> in the <span className="text-secondary">{session}</span> session. Please verify your details and try again.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ export function HeroCarousel() {
                 <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/40 to-transparent flex items-center">
                   <div className="container mx-auto px-4 md:px-8 max-w-4xl space-y-6">
                     <span className="inline-block px-4 py-1.5 bg-primary/20 text-secondary border border-primary/30 rounded-full text-xs font-bold tracking-widest uppercase">
-                      Excellence in Engineering
+                      {image.description}
                     </span>
                     <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight leading-tight">
                       Igniting <span className="text-secondary text-glow">Innovations</span><br />
@@ -62,7 +62,7 @@ export function HeroCarousel() {
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
         {heroImages.map((_, i) => (
           <div key={i} className="h-1 w-8 bg-muted-foreground/30 rounded-full overflow-hidden">
-            <div className="h-full bg-secondary animate-progress" />
+            <div className="h-full bg-secondary opacity-50" />
           </div>
         ))}
       </div>

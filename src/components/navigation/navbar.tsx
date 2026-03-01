@@ -105,8 +105,8 @@ export function Navbar() {
                 <hr className="border-border" />
                 
                 <div className="space-y-4">
-                  <Link href="/auth/signup" onClick={() => setIsOpen(false)} className="block">
-                    <Button className="w-full bg-primary accent-glow">Join Now</Button>
+                  <Link href="/auth/login" onClick={() => setIsOpen(false)} className="block">
+                    <Button className="w-full bg-primary accent-glow">Sign In / Sign Up</Button>
                   </Link>
                   
                   <div className="grid grid-cols-1 gap-3">

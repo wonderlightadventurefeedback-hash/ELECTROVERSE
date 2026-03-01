@@ -1,0 +1,47 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-1",
+      "description": "Modern electrical laboratory with high-tech equipment",
+      "imageUrl": "https://picsum.photos/seed/elec1/1200/600",
+      "imageHint": "electrical laboratory"
+    },
+    {
+      "id": "hero-2",
+      "description": "Smart grid visualization and power systems monitor",
+      "imageUrl": "https://picsum.photos/seed/elec2/1200/600",
+      "imageHint": "power grid"
+    },
+    {
+      "id": "hero-3",
+      "description": "Students working on advanced robotics and circuitry",
+      "imageUrl": "https://picsum.photos/seed/elec3/1200/600",
+      "imageHint": "robotics engineering"
+    },
+    {
+      "id": "gallery-1",
+      "description": "Award winning solar power project by students",
+      "imageUrl": "https://picsum.photos/seed/gal1/800/600",
+      "imageHint": "solar energy"
+    },
+    {
+      "id": "gallery-2",
+      "description": "Departmental convocation ceremony 2023",
+      "imageUrl": "https://picsum.photos/seed/gal2/800/600",
+      "imageHint": "university graduation"
+    },
+    {
+      "id": "gallery-3",
+      "description": "Industrial visit to a high-voltage substation",
+      "imageUrl": "https://picsum.photos/seed/gal3/800/600",
+      "imageHint": "electrical substation"
+    },
+    {
+      "id": "gallery-4",
+      "description": "Annual technical symposium highlights",
+      "imageUrl": "https://picsum.photos/seed/gal4/800/600",
+      "imageHint": "tech symposium"
+    }
+  ]
+}

@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-1",
+      "description": "Modern electrical laboratory with high-tech equipment",
+      "imageUrl": "https://images.unsplash.com/photo-1581094271901-8022df4466f9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxlbGVjdHJpY2FsJTIwbGFib3JhdG9yeXxlbnwwfHx8fDE3NzIzODM2NDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "electrical laboratory"
+    },
+    {
+      "id": "hero-2",
+      "description": "Smart grid visualization and power systems monitor",
+      "imageUrl": "https://images.unsplash.com/photo-1509390559807-3144e7d29097?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwb3dlciUyMGdyaWR8ZW58MHx8fHwxNzcyMzgzNjQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "power grid"
+    },
+    {
+      "id": "hero-3",
+      "description": "Students working on advanced robotics and circuitry",
+      "imageUrl": "https://images.unsplash.com/photo-1581092161557-edc82c7a9af0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyb2JvdGljcyUyMGVuZ2luZWVyaW5nfGVufDB8fHx8MTc3MjM4MzY0Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "robotics engineering"
+    },
+    {
+      "id": "gallery-1",
+      "description": "Award winning solar power project by students",
+      "imageUrl": "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb2xhciUyMGVuZXJneXxlbnwwfHx8fDE3NzIzODM2NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "solar energy"
+    },
+    {
+      "id": "gallery-2",
+      "description": "Departmental convocation ceremony 2023",
+      "imageUrl": "https://images.unsplash.com/photo-1689255169128-84526386a1db?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bml2ZXJzaXR5JTIwZ3JhZHVhdGlvbnxlbnwwfHx8fDE3NzIzODM2NDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "university graduation"
+    },
+    {
+      "id": "gallery-3",
+      "description": "Industrial visit to a high-voltage substation",
+      "imageUrl": "https://images.unsplash.com/photo-1669277779371-608c8156f1f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxlbGVjdHJpY2FsJTIwc3Vic3RhdGlvbnxlbnwwfHx8fDE3NzIyOTM3OTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "electrical substation"
+    },
+    {
+      "id": "gallery-4",
+      "description": "Annual technical symposium highlights",
+      "imageUrl": "https://images.unsplash.com/photo-1531496730074-83b638c0a7ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx0ZWNoJTIwc3ltcG9zaXVtfGVufDB8fHx8MTc3MjM4MzY0MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tech symposium"
+    }
+  ]
 }

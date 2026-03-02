@@ -7,10 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Zap, User, Mail, Lock, ShieldCheck, GraduationCap, Briefcase, ShieldAlert } from "lucide-react";
+import { Zap, User, Mail, Lock, ShieldCheck, GraduationCap, Briefcase, ShieldAlert, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -21,8 +26,25 @@ export default function SignupPage() {
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic for Firebase Auth registration will go here
-    console.log("Signup attempted with:", formData);
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Registration Error",
+        description: "Passwords do not match.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    // Simulate Firebase Registration
+    setTimeout(() => {
+      toast({
+        title: "Account Created",
+        description: `Welcome to SparkLux! Your ${formData.role} account is ready.`,
+      });
+      setIsLoading(false);
+      router.push("/auth/login");
+    }, 1500);
   };
 
   return (
@@ -134,8 +156,13 @@ export default function SignupPage() {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 h-12 text-lg accent-glow mt-4">
-              Create Account
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary/90 h-12 text-lg accent-glow mt-4"
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : null}
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
           <div className="mt-8 pt-6 border-t border-border text-center">

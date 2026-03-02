@@ -20,7 +20,8 @@ import {
   Edit2,
   Save,
   Trash2,
-  Loader2
+  Loader2,
+  GraduationCap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,13 +45,17 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const INITIAL_STUDENTS = [
   { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active" },
   { id: "2", regNo: "SPARK2024-002", name: "Student User 2", semester: "3rd Semester", status: "Active" },
   { id: "3", regNo: "SPARK2024-003", name: "Student User 3", semester: "4th Semester", status: "Active" },
   { id: "4", regNo: "SPARK2024-004", name: "Student User 4", semester: "1st Semester", status: "Active" },
-  { id: "5", regNo: "SPARK2024-005", name: "Student User 5", semester: "2nd Semester", status: "Active" },
+  { id: "5", regNo: "SPARK2024-005", name: "Student User 5", semester: "6th Semester", status: "Active" },
+  { id: "6", regNo: "SPARK2024-006", name: "Student User 6", semester: "8th Semester", status: "Active" },
+  { id: "7", regNo: "SPARK2024-007", name: "Student User 7", semester: "5th Semester", status: "Active" },
+  { id: "8", regNo: "SPARK2024-008", name: "Student User 8", semester: "7th Semester", status: "Active" },
 ];
 
 const INITIAL_STATS = [
@@ -70,10 +75,26 @@ export default function AdminDashboard() {
   const [editingStudent, setEditingStudent] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  const getYearFromSemester = (sem: string) => {
+    if (sem.includes("1st") || sem.includes("2nd")) return "1st Year";
+    if (sem.includes("3rd") || sem.includes("4th")) return "2nd Year";
+    if (sem.includes("5th") || sem.includes("6th")) return "3rd Year";
+    if (sem.includes("7th") || sem.includes("8th")) return "4th Year";
+    return "Graduated";
+  };
+
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     s.regNo.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const studentsByYear = {
+    "All": filteredStudents,
+    "1st Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "1st Year"),
+    "2nd Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "2nd Year"),
+    "3rd Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "3rd Year"),
+    "4th Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "4th Year"),
+  };
 
   const handleSaveStudent = (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,14 +214,14 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 bg-card border-border">
-          <CardHeader className="flex flex-row items-center justify-between">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <Card className="lg:col-span-3 bg-card border-border">
+          <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <CardTitle className="font-headline">Manage Student Records</CardTitle>
-              <CardDescription>Search and edit student enrollment details</CardDescription>
+              <CardDescription>Records categorized by academic year</CardDescription>
             </div>
-            <div className="relative w-64">
+            <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder="Search students..." 
@@ -211,60 +232,84 @@ export default function AdminDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Reg No</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Semester</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-mono text-xs">{student.regNo}</TableCell>
-                    <TableCell className="font-medium">{student.name}</TableCell>
-                    <TableCell>{student.semester}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                        student.status === 'Active' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
-                      }`}>
-                        {student.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-secondary"
-                        onClick={() => {
-                          setEditingStudent(student);
-                          setIsEditDialogOpen(true);
-                        }}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteStudent(student.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+            <Tabs defaultValue="All" className="w-full">
+              <TabsList className="bg-muted/50 border border-border mb-6 flex flex-wrap h-auto p-1">
+                {Object.keys(studentsByYear).map(year => (
+                  <TabsTrigger key={year} value={year} className="flex-1 py-2">
+                    {year}
+                  </TabsTrigger>
                 ))}
-              </TableBody>
-            </Table>
+              </TabsList>
+
+              {Object.entries(studentsByYear).map(([year, list]) => (
+                <TabsContent key={year} value={year} className="mt-0">
+                  <div className="rounded-md border border-border overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-muted/30">
+                        <TableRow>
+                          <TableHead>Reg No</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Semester</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {list.length > 0 ? (
+                          list.map((student) => (
+                            <TableRow key={student.id}>
+                              <TableCell className="font-mono text-xs">{student.regNo}</TableCell>
+                              <TableCell className="font-medium">{student.name}</TableCell>
+                              <TableCell>{student.semester}</TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  student.status === 'Active' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                                }`}>
+                                  {student.status}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right flex justify-end gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-secondary"
+                                  onClick={() => {
+                                    setEditingStudent(student);
+                                    setIsEditDialogOpen(true);
+                                  }}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteStudent(student.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                              No students found for this category.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
           </CardContent>
         </Card>
 
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2">
+            <CardTitle className="font-headline flex items-center gap-2 text-lg">
               <Bell className="h-5 w-5 text-secondary" />
               Recent Activity
             </CardTitle>

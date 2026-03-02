@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -20,8 +21,8 @@ import {
   Save,
   Trash2,
   Loader2,
-  GraduationCap,
-  UserPlus
+  UserPlus,
+  FileSpreadsheet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFirestore } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const INITIAL_STUDENTS = [
   { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active" },
@@ -66,6 +69,7 @@ const INITIAL_STATS = [
 ];
 
 export default function AdminDashboard() {
+  const db = useFirestore();
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [stats, setStats] = useState(INITIAL_STATS);
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,6 +81,17 @@ export default function AdminDashboard() {
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newStudent, setNewStudent] = useState({ name: "", regNo: "", semester: "1st Semester", status: "Active" });
+
+  const [isMarksDialogOpen, setIsMarksDialogOpen] = useState(false);
+  const [selectedStudentForMarks, setSelectedStudentForMarks] = useState<any>(null);
+  const [marksData, setMarksData] = useState({
+    session: "2024-25",
+    examType: "semester",
+    subjects: [
+      { code: "EE301", name: "Electrical Circuits", marks: "", grade: "A" },
+      { code: "EE302", name: "Microprocessors", marks: "", grade: "B" },
+    ]
+  });
 
   const getYearFromSemester = (sem: string) => {
     if (sem.includes("1st") || sem.includes("2nd")) return "1st Year";
@@ -97,6 +112,38 @@ export default function AdminDashboard() {
     "2nd Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "2nd Year"),
     "3rd Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "3rd Year"),
     "4th Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "4th Year"),
+  };
+
+  const handleSaveMarks = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!db || !selectedStudentForMarks) return;
+    setIsLoading(true);
+
+    try {
+      await addDoc(collection(db, "grades"), {
+        regNo: selectedStudentForMarks.regNo,
+        studentName: selectedStudentForMarks.name,
+        semester: selectedStudentForMarks.semester,
+        session: marksData.session,
+        examType: marksData.examType,
+        results: marksData.subjects,
+        recordedDate: serverTimestamp(),
+      });
+
+      toast({
+        title: "Marks Stored",
+        description: `Results for ${selectedStudentForMarks.name} have been published.`,
+      });
+      setIsMarksDialogOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to store marks. Please check permissions.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSaveStudent = (e: React.FormEvent) => {
@@ -132,16 +179,6 @@ export default function AdminDashboard() {
       setIsAddDialogOpen(false);
       setNewStudent({ name: "", regNo: "", semester: "1st Semester", status: "Active" });
     }, 800);
-  };
-
-  const handleUpdateStats = (index: number, newValue: string) => {
-    const newStats = [...stats];
-    newStats[index].value = newValue;
-    setStats(newStats);
-    toast({
-      title: "Stat Updated",
-      description: `${newStats[index].label} is now ${newValue}.`,
-    });
   };
 
   const handleDeleteStudent = (id: string) => {
@@ -219,41 +256,6 @@ export default function AdminDashboard() {
             </DialogContent>
           </Dialog>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 gap-2">
-                <Plus className="h-4 w-4" /> New Announcement
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-card border-border">
-              <DialogHeader>
-                <DialogTitle>Post New Announcement</DialogTitle>
-                <DialogDescription>This will be visible to all students and faculty.</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label>Title</Label>
-                  <Input placeholder="Announcement Title" className="bg-background" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select defaultValue="academic">
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="academic">Academic</SelectItem>
-                      <SelectItem value="event">Event</SelectItem>
-                      <SelectItem value="achievement">Achievement</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={() => toast({ title: "Announcement Published" })}>Publish Announcement</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" className="border-secondary/30 text-secondary">
             <Settings className="h-4 w-4" />
           </Button>
@@ -270,25 +272,6 @@ export default function AdminDashboard() {
               </div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-2xl font-bold">{stat.value}</CardTitle>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded text-secondary">
-                      <Edit2 className="h-3 w-3" />
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-card border-border">
-                    <DialogHeader>
-                      <DialogTitle>Update {stat.label}</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4">
-                      <Input 
-                        defaultValue={stat.value} 
-                        onChange={(e) => handleUpdateStats(i, e.target.value)}
-                        className="bg-background"
-                      />
-                    </div>
-                  </DialogContent>
-                </Dialog>
               </div>
             </CardHeader>
           </Card>
@@ -354,6 +337,18 @@ export default function AdminDashboard() {
                                   variant="ghost" 
                                   size="sm" 
                                   className="text-secondary"
+                                  title="Add Marks"
+                                  onClick={() => {
+                                    setSelectedStudentForMarks(student);
+                                    setIsMarksDialogOpen(true);
+                                  }}
+                                >
+                                  <FileSpreadsheet className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-primary"
                                   onClick={() => {
                                     setEditingStudent(student);
                                     setIsEditDialogOpen(true);
@@ -407,10 +402,92 @@ export default function AdminDashboard() {
                 <span className="text-[10px] text-secondary font-bold uppercase">{activity.user}</span>
               </div>
             ))}
-            <Button variant="ghost" className="w-full text-xs text-muted-foreground">View All Activity Log</Button>
           </CardContent>
         </Card>
       </div>
+
+      {/* Manage Marks Dialog */}
+      <Dialog open={isMarksDialogOpen} onOpenChange={setIsMarksDialogOpen}>
+        <DialogContent className="bg-card border-border max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Manage Student Marks</DialogTitle>
+            <DialogDescription>Record academic results for {selectedStudentForMarks?.name}</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveMarks} className="space-y-6 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Session</Label>
+                <Select 
+                  value={marksData.session} 
+                  onValueChange={(val) => setMarksData({...marksData, session: val})}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024-25">2024-25</SelectItem>
+                    <SelectItem value="2023-24">2023-24</SelectItem>
+                    <SelectItem value="2022-23">2022-23</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Exam Type</Label>
+                <Select 
+                  value={marksData.examType} 
+                  onValueChange={(val) => setMarksData({...marksData, examType: val})}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="semester">Semester Results</SelectItem>
+                    <SelectItem value="internal">Internal Results</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-secondary font-bold uppercase tracking-widest text-xs">Subject Scores</Label>
+              {marksData.subjects.map((subject, index) => (
+                <div key={index} className="grid grid-cols-4 gap-4 items-end bg-muted/20 p-3 rounded-lg border border-border">
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Code</Label>
+                    <Input value={subject.code} disabled className="bg-background h-8 text-xs" />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <Label className="text-[10px]">Subject</Label>
+                    <Input value={subject.name} disabled className="bg-background h-8 text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Marks (%)</Label>
+                    <Input 
+                      type="number" 
+                      placeholder="0-100" 
+                      className="bg-background h-8 text-xs"
+                      value={subject.marks}
+                      onChange={(e) => {
+                        const newSubjects = [...marksData.subjects];
+                        newSubjects[index].marks = e.target.value;
+                        setMarksData({...marksData, subjects: newSubjects});
+                      }}
+                      required
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <DialogFooter>
+              <Button type="submit" className="w-full gap-2" disabled={isLoading}>
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Publish Results
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Student Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

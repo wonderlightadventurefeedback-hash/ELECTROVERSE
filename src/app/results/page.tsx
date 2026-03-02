@@ -11,17 +11,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, FileX } from "lucide-react";
+import { Loader2, Search, FileX, GraduationCap, Calendar, User } from "lucide-react";
+import { useFirestore } from "@/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function ResultsPage() {
+  const db = useFirestore();
   const [session, setSession] = useState("");
   const [examType, setExamType] = useState("");
   const [regNo, setRegNo] = useState("");
   const [dob, setDob] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchTriggered, setSearchTriggered] = useState(false);
+  const [foundResult, setFoundResult] = useState<any>(null);
   const { toast } = useToast();
 
   const handleReset = () => {
@@ -30,35 +35,65 @@ export default function ResultsPage() {
     setRegNo("");
     setDob("");
     setSearchTriggered(false);
+    setFoundResult(null);
   };
 
-  const handleViewResult = () => {
-    if (!session || !examType || !regNo || !dob) {
+  const handleViewResult = async () => {
+    if (!session || !examType || !regNo) {
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: "Please fill in all fields to view the result.",
+        description: "Please fill in all fields (Session, Exam Type, and Reg No) to view the result.",
       });
       return;
     }
 
+    if (!db) return;
     setIsSearching(true);
     setSearchTriggered(false);
+    setFoundResult(null);
 
-    // Simulate search delay
-    setTimeout(() => {
+    try {
+      const q = query(
+        collection(db, "grades"),
+        where("regNo", "==", regNo),
+        where("session", "==", session),
+        where("examType", "==", examType)
+      );
+
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        // Taking the most recent result if multiple exist (unlikely given filters)
+        const resultDoc = querySnapshot.docs[0].data();
+        setFoundResult(resultDoc);
+        toast({
+          title: "Result Found",
+          description: `Displaying academic record for ${resultDoc.studentName}.`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Not Found",
+          description: "No records found for the provided information.",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Query Error",
+        description: "There was an error accessing the database.",
+      });
+    } finally {
       setIsSearching(false);
       setSearchTriggered(true);
-      toast({
-        title: "Search Complete",
-        description: "No records found for the provided information.",
-      });
-    }, 1500);
+    }
   };
 
   return (
     <div className="min-h-[80vh] bg-[#F4F7F9] dark:bg-background">
-      <div className="container mx-auto px-4 py-16 space-y-6">
+      <div className="container mx-auto px-4 py-16 space-y-8">
         <h2 className="text-[#E05B3E] font-bold text-xl uppercase tracking-tight font-headline">
           STUDENTS RESULT SUMMARY
         </h2>
@@ -109,7 +144,7 @@ export default function ResultsPage() {
 
                 <div className="w-full">
                   <Input
-                    placeholder="DOB (DD-MM-YYYY)"
+                    placeholder="DOB (DD-MM-YYYY) - Optional"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
                     className="bg-transparent border-slate-300 dark:border-border h-12 placeholder:text-slate-400"
@@ -142,7 +177,53 @@ export default function ResultsPage() {
           </CardContent>
         </Card>
 
-        {searchTriggered && (
+        {searchTriggered && foundResult && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <Card className="bg-card border-border shadow-xl">
+              <CardHeader className="border-b border-border bg-muted/20">
+                <div className="flex flex-wrap justify-between items-center gap-4">
+                  <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                    <GraduationCap className="h-6 w-6 text-secondary" />
+                    {foundResult.studentName}
+                  </CardTitle>
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1"><User className="h-4 w-4" /> {foundResult.regNo}</span>
+                    <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> {foundResult.session}</span>
+                    <span className="flex items-center gap-1 font-bold text-secondary uppercase">{foundResult.examType}</span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow>
+                      <TableHead>Subject Code</TableHead>
+                      <TableHead>Subject Name</TableHead>
+                      <TableHead className="text-center">Marks Obtained</TableHead>
+                      <TableHead className="text-right">Grade</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {foundResult.results.map((item: any, i: number) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-mono text-xs">{item.code}</TableCell>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell className="text-center font-bold text-secondary">{item.marks}%</TableCell>
+                        <TableCell className="text-right">
+                          <span className="px-2 py-1 bg-primary/20 text-secondary rounded text-xs font-bold border border-primary/30">
+                            {parseInt(item.marks) >= 90 ? 'O' : parseInt(item.marks) >= 80 ? 'E' : parseInt(item.marks) >= 70 ? 'A' : 'B'}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {searchTriggered && !foundResult && (
           <div className="flex flex-col items-center justify-center py-20 bg-card/20 rounded-xl border border-dashed border-border text-center space-y-4">
             <div className="p-4 bg-muted/50 rounded-full">
               <FileX className="h-12 w-12 text-muted-foreground" />

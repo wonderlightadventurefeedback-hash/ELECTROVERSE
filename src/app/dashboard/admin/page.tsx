@@ -21,7 +21,8 @@ import {
   Save,
   Trash2,
   Loader2,
-  GraduationCap
+  GraduationCap,
+  UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +46,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
 
 const INITIAL_STUDENTS = [
   { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active" },
@@ -69,11 +70,14 @@ export default function AdminDashboard() {
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [stats, setStats] = useState(INITIAL_STATS);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSaving, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const [editingStudent, setEditingStudent] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newStudent, setNewStudent] = useState({ name: "", regNo: "", semester: "1st Semester", status: "Active" });
 
   const getYearFromSemester = (sem: string) => {
     if (sem.includes("1st") || sem.includes("2nd")) return "1st Year";
@@ -111,6 +115,26 @@ export default function AdminDashboard() {
     }, 800);
   };
 
+  const handleAddStudent = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    setTimeout(() => {
+      const studentToAdd = {
+        ...newStudent,
+        id: (students.length + 1).toString(),
+      };
+      setStudents(prev => [...prev, studentToAdd]);
+      toast({
+        title: "Student Enrolled",
+        description: `${newStudent.name} has been added to the database.`,
+      });
+      setIsLoading(false);
+      setIsAddDialogOpen(false);
+      setNewStudent({ name: "", regNo: "", semester: "1st Semester", status: "Active" });
+    }, 800);
+  };
+
   const handleUpdateStats = (index: number, newValue: string) => {
     const newStats = [...stats];
     newStats[index].value = newValue;
@@ -138,6 +162,64 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Welcome back, Nalanda EE Admin.</p>
         </div>
         <div className="flex gap-3">
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2">
+                <UserPlus className="h-4 w-4" /> Add Student
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle>Enroll New Student</DialogTitle>
+                <DialogDescription>Add a new student record to the academic registry.</DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleAddStudent} className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Registration Number</Label>
+                  <Input 
+                    placeholder="SPARK2024-XXX" 
+                    className="bg-background"
+                    value={newStudent.regNo}
+                    onChange={(e) => setNewStudent({...newStudent, regNo: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Full Name</Label>
+                  <Input 
+                    placeholder="Enter student's full name" 
+                    className="bg-background"
+                    value={newStudent.name}
+                    onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Semester</Label>
+                  <Select 
+                    value={newStudent.semester} 
+                    onValueChange={(val) => setNewStudent({...newStudent, semester: val})}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({length: 8}, (_, i) => `${i+1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Semester`).map(sem => (
+                        <SelectItem key={sem} value={sem}>{sem}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter className="pt-4">
+                  <Button type="submit" className="gap-2" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Confirm Enrollment
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           <Dialog>
             <DialogTrigger asChild>
               <Button className="bg-primary hover:bg-primary/90 gap-2">
@@ -383,8 +465,8 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <DialogFooter className="pt-4">
-                <Button type="submit" className="gap-2" disabled={isSaving}>
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                <Button type="submit" className="gap-2" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save Changes
                 </Button>
               </DialogFooter>

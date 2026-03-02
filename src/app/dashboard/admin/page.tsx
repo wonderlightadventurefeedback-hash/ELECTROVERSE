@@ -22,7 +22,8 @@ import {
   Trash2,
   Loader2,
   UserPlus,
-  FileSpreadsheet
+  FileSpreadsheet,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,6 +113,25 @@ export default function AdminDashboard() {
     "2nd Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "2nd Year"),
     "3rd Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "3rd Year"),
     "4th Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "4th Year"),
+  };
+
+  const addSubjectRow = () => {
+    setMarksData({
+      ...marksData,
+      subjects: [...marksData.subjects, { code: "", name: "", marks: "", grade: "A" }]
+    });
+  };
+
+  const removeSubjectRow = (index: number) => {
+    const newSubjects = [...marksData.subjects];
+    newSubjects.splice(index, 1);
+    setMarksData({ ...marksData, subjects: newSubjects });
+  };
+
+  const updateSubjectField = (index: number, field: string, value: string) => {
+    const newSubjects = [...marksData.subjects];
+    (newSubjects[index] as any)[field] = value;
+    setMarksData({ ...marksData, subjects: newSubjects });
   };
 
   const handleSaveMarks = async (e: React.FormEvent) => {
@@ -408,7 +428,7 @@ export default function AdminDashboard() {
 
       {/* Manage Marks Dialog */}
       <Dialog open={isMarksDialogOpen} onOpenChange={setIsMarksDialogOpen}>
-        <DialogContent className="bg-card border-border max-w-2xl">
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage Student Marks</DialogTitle>
             <DialogDescription>Record academic results for {selectedStudentForMarks?.name}</DialogDescription>
@@ -449,37 +469,71 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-4">
-              <Label className="text-secondary font-bold uppercase tracking-widest text-xs">Subject Scores</Label>
-              {marksData.subjects.map((subject, index) => (
-                <div key={index} className="grid grid-cols-4 gap-4 items-end bg-muted/20 p-3 rounded-lg border border-border">
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Code</Label>
-                    <Input value={subject.code} disabled className="bg-background h-8 text-xs" />
+              <div className="flex items-center justify-between">
+                <Label className="text-secondary font-bold uppercase tracking-widest text-xs">Subject Scores</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={addSubjectRow}
+                  className="h-8 gap-2 text-xs border-secondary/30 text-secondary"
+                >
+                  <Plus className="h-3 w-3" /> Add Subject
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                {marksData.subjects.map((subject, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-3 items-end bg-muted/20 p-3 rounded-lg border border-border relative group">
+                    <div className="col-span-3 space-y-1">
+                      <Label className="text-[10px]">Code</Label>
+                      <Input 
+                        value={subject.code} 
+                        onChange={(e) => updateSubjectField(index, 'code', e.target.value)}
+                        className="bg-background h-8 text-xs" 
+                        placeholder="EE301"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-5 space-y-1">
+                      <Label className="text-[10px]">Subject</Label>
+                      <Input 
+                        value={subject.name} 
+                        onChange={(e) => updateSubjectField(index, 'name', e.target.value)}
+                        className="bg-background h-8 text-xs" 
+                        placeholder="Subject Name"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-3 space-y-1">
+                      <Label className="text-[10px]">Marks (%)</Label>
+                      <Input 
+                        type="number" 
+                        placeholder="0-100" 
+                        className="bg-background h-8 text-xs"
+                        value={subject.marks}
+                        onChange={(e) => updateSubjectField(index, 'marks', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="col-span-1 flex justify-center pb-1">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeSubjectRow(index)}
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                        disabled={marksData.subjects.length <= 1}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="space-y-1 col-span-2">
-                    <Label className="text-[10px]">Subject</Label>
-                    <Input value={subject.name} disabled className="bg-background h-8 text-xs" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Marks (%)</Label>
-                    <Input 
-                      type="number" 
-                      placeholder="0-100" 
-                      className="bg-background h-8 text-xs"
-                      value={subject.marks}
-                      onChange={(e) => {
-                        const newSubjects = [...marksData.subjects];
-                        newSubjects[index].marks = e.target.value;
-                        setMarksData({...marksData, subjects: newSubjects});
-                      }}
-                      required
-                    />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="pt-4 border-t border-border">
               <Button type="submit" className="w-full gap-2" disabled={isLoading}>
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Publish Results

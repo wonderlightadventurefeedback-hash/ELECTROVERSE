@@ -48,7 +48,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFirestore } from "@/firebase";
+import { useFirestore, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const INITIAL_STUDENTS = [
@@ -71,6 +71,7 @@ const INITIAL_STATS = [
 
 export default function AdminDashboard() {
   const db = useFirestore();
+  const { user } = useUser();
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [stats, setStats] = useState(INITIAL_STATS);
   const [searchQuery, setSearchQuery] = useState("");
@@ -134,36 +135,48 @@ export default function AdminDashboard() {
     setMarksData({ ...marksData, subjects: newSubjects });
   };
 
-  const handleSaveMarks = async (e: React.FormEvent) => {
+  const handleSaveMarks = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !selectedStudentForMarks) return;
-    setIsLoading(true);
-
-    try {
-      await addDoc(collection(db, "grades"), {
-        regNo: selectedStudentForMarks.regNo,
-        studentName: selectedStudentForMarks.name,
-        semester: selectedStudentForMarks.semester,
-        session: marksData.session,
-        examType: marksData.examType,
-        results: marksData.subjects,
-        recordedDate: serverTimestamp(),
-      });
-
-      toast({
-        title: "Marks Stored",
-        description: `Results for ${selectedStudentForMarks.name} have been published.`,
-      });
-      setIsMarksDialogOpen(false);
-    } catch (error) {
+    if (!db || !selectedStudentForMarks || !user) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to store marks. Please check permissions.",
+        title: "Configuration Error",
+        description: "Firestore or Authentication is not available. Ensure you are signed in as an admin.",
       });
-    } finally {
-      setIsLoading(false);
+      return;
     }
+    
+    setIsLoading(true);
+
+    const marksPayload = {
+      regNo: selectedStudentForMarks.regNo,
+      studentName: selectedStudentForMarks.name,
+      semester: selectedStudentForMarks.semester,
+      session: marksData.session,
+      examType: marksData.examType,
+      results: marksData.subjects,
+      recordedDate: serverTimestamp(),
+      teacherId: user.uid, // Required for security rules
+    };
+
+    // Non-blocking write
+    addDoc(collection(db, "grades"), marksPayload)
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: "grades",
+          operation: 'create',
+          requestResourceData: marksPayload,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+    toast({
+      title: "Marks Submitted",
+      description: `Results for ${selectedStudentForMarks.name} are being published in the background.`,
+    });
+    
+    setIsMarksDialogOpen(false);
+    setIsLoading(false);
   };
 
   const handleSaveStudent = (e: React.FormEvent) => {

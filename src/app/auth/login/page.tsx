@@ -11,6 +11,8 @@ import { Zap, Mail, Lock, GraduationCap, Briefcase, ShieldAlert, Loader2 } from 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,40 +21,36 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const auth = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate authentication delay
-    setTimeout(() => {
-      // Check for specific Admin credentials provided by user
-      if (
-        role === "admin" && 
-        email === "nalandaeeconnect@gmail.com" && 
-        password === "Nalanda@2026"
-      ) {
-        toast({
-          title: "Admin Access Granted",
-          description: "Welcome to the Nalanda EE Connect Admin Panel.",
-        });
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back! Redirecting to your ${role} portal...`,
+      });
+
+      if (role === "admin") {
         router.push("/dashboard/admin");
-      } else if (email && password) {
-        // Mock success for other roles for prototyping
-        toast({
-          title: "Login Successful",
-          description: `Welcome back! Redirecting to your ${role} portal...`,
-        });
-        router.push(role === "student" ? "/dashboard/student" : "/");
+      } else if (role === "student") {
+        router.push("/dashboard/student");
       } else {
-        toast({
-          variant: "destructive",
-          title: "Authentication Failed",
-          description: "Please check your credentials and try again.",
-        });
+        router.push("/");
       }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Failed",
+        description: error.message || "Please check your credentials and try again.",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   return (

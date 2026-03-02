@@ -11,11 +11,14 @@ import { Zap, User, Mail, Lock, ShieldCheck, GraduationCap, Briefcase, ShieldAle
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const auth = useAuth();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -24,7 +27,7 @@ export default function SignupPage() {
     role: "student"
   });
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       toast({
@@ -36,15 +39,24 @@ export default function SignupPage() {
     }
 
     setIsLoading(true);
-    // Simulate Firebase Registration
-    setTimeout(() => {
+    
+    try {
+      await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      
       toast({
         title: "Account Created",
         description: `Welcome to SparkLux! Your ${formData.role} account is ready.`,
       });
-      setIsLoading(false);
       router.push("/auth/login");
-    }, 1500);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error.message || "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

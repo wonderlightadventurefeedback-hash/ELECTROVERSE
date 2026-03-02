@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -46,7 +45,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const INITIAL_STUDENTS = [
   { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active" },

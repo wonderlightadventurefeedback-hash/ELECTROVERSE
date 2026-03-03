@@ -18,9 +18,10 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) ||
-        request.auth.token.email == "nalandaeeconnect@gmail.com"
-      ) || request.auth.token.email == "hitakankshib@gmail.com"; // Adding developer for testing convenience if needed
+        request.auth.token.email == "nalandaeeconnect@gmail.com" ||
+        request.auth.token.email == "hitakankshib@gmail.com" ||
+        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
+      );
     }
 
     function isExistingOwner(userId) {
@@ -29,18 +30,19 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
-    match /users/{userId}/studentProfile/{profileId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if (isOwner(userId) && request.resource.data.id == userId) || isAdmin();
-      allow update: if (isExistingOwner(userId) && request.resource.data.id == resource.data.id) || isAdmin();
-      allow delete: if isExistingOwner(userId) || isAdmin();
+    // Student and Teacher profiles using recursive match to support collectionGroup queries used in the Admin Dashboard
+    match /{path=**}/studentProfile/{profileId} {
+      allow get, list: if isSignedIn() && (isAdmin() || request.auth.uid == profileId);
+      allow create: if (isSignedIn() && request.auth.uid == profileId) || isAdmin();
+      allow update: if (isSignedIn() && request.auth.uid == profileId) || isAdmin();
+      allow delete: if isAdmin();
     }
 
-    match /users/{userId}/teacherProfile/{profileId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if (isOwner(userId) && request.resource.data.id == userId) || isAdmin();
-      allow update: if (isExistingOwner(userId) && request.resource.data.id == resource.data.id) || isAdmin();
-      allow delete: if isExistingOwner(userId) || isAdmin();
+    match /{path=**}/teacherProfile/{profileId} {
+      allow get, list: if isSignedIn() && (isAdmin() || request.auth.uid == profileId);
+      allow create: if (isSignedIn() && request.auth.uid == profileId) || isAdmin();
+      allow update: if (isSignedIn() && request.auth.uid == profileId) || isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /roles_admin/{adminId} {

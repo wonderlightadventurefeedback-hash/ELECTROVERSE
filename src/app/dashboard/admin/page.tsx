@@ -95,7 +95,7 @@ export default function AdminDashboard() {
   const STATS = [
     { label: "Total Students", value: "1,248", icon: Users, color: "text-secondary" },
     { label: "Online Now", value: onlineCount.toString(), icon: UserCheck, color: "text-green-500" },
-    { label: "Active Faculty", value: "12", icon: Briefcase, color: "text-primary" },
+    { label: "Faculty Members", value: "84", icon: Briefcase, color: "text-primary" },
     { label: "System Status", value: "Healthy", icon: ShieldCheck, color: "text-green-400" },
   ];
 
@@ -103,7 +103,8 @@ export default function AdminDashboard() {
     { user: "Student User 1", type: "student", action: "Logged in from Chrome / Windows", time: "Just now" },
     { user: "Prof. Vikram Das", type: "teacher", action: "Accessed Gradebook Portal", time: "5 mins ago" },
     { user: "Student User 3", type: "student", action: "Logged in from Safari / iOS", time: "12 mins ago" },
-    { user: "Dr. Sarah Smith", type: "teacher", action: "Updated Course Syllabus", time: "2 hours ago" },
+    { user: "Student User 6", type: "student", action: "Logged in from Mobile App", time: "45 mins ago" },
+    { user: "Dr. Sarah Smith", type: "teacher", action: "Accessed Admin Panel", time: "2 hours ago" },
   ];
 
   const getYearFromSemester = (sem: string) => {
@@ -319,7 +320,7 @@ export default function AdminDashboard() {
               </div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-2xl font-bold">{stat.value}</CardTitle>
-                {(stat.label === "Online Now" || stat.label === "Active Faculty") && <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />}
+                {(stat.label === "Online Now" || stat.label === "Faculty Members") && <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />}
               </div>
             </CardHeader>
           </Card>
@@ -331,7 +332,7 @@ export default function AdminDashboard() {
           <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <CardTitle className="font-headline">Manage Student Records</CardTitle>
-              <CardDescription>Monitor enrollment, academic details, and session status</CardDescription>
+              <CardDescription>Monitor enrollment and active user status</CardDescription>
             </div>
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -360,8 +361,8 @@ export default function AdminDashboard() {
                     <Table>
                       <TableHeader className="bg-muted/30">
                         <TableRow>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Registration Number</TableHead>
+                          <TableHead className="w-24">Status</TableHead>
+                          <TableHead>Reg No</TableHead>
                           <TableHead>Name</TableHead>
                           <TableHead>Semester</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
@@ -439,7 +440,7 @@ export default function AdminDashboard() {
               <Activity className="h-5 w-5 text-secondary" />
               User Login Feed
             </CardTitle>
-            <CardDescription>Live tracking of student & teacher sessions</CardDescription>
+            <CardDescription>Real-time access logs</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {RECENT_LOGINS.map((activity, i) => (
@@ -456,7 +457,7 @@ export default function AdminDashboard() {
               </div>
             ))}
             <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-secondary">
-              View Comprehensive Logs
+              View All Logs
             </Button>
           </CardContent>
         </Card>
@@ -506,7 +507,7 @@ export default function AdminDashboard() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-secondary font-bold uppercase tracking-widest text-xs">Subject Wise Breakdown</Label>
+                <Label className="text-secondary font-bold uppercase tracking-widest text-xs">Subject Scores</Label>
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -532,12 +533,12 @@ export default function AdminDashboard() {
                       />
                     </div>
                     <div className="col-span-5 space-y-1">
-                      <Label className="text-[10px]">Subject Name</Label>
+                      <Label className="text-[10px]">Subject</Label>
                       <Input 
                         value={subject.name} 
                         onChange={(e) => updateSubjectField(index, 'name', e.target.value)}
                         className="bg-background h-8 text-xs" 
-                        placeholder="e.g. Electric Machines"
+                        placeholder="Subject Name"
                         required
                       />
                     </div>
@@ -572,7 +573,7 @@ export default function AdminDashboard() {
             <DialogFooter className="pt-4 border-t border-border">
               <Button type="submit" className="w-full gap-2 accent-glow" disabled={isLoading}>
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Publish Results to Student Portal
+                Publish Results
               </Button>
             </DialogFooter>
           </form>
@@ -625,7 +626,6 @@ export default function AdminDashboard() {
                     <SelectContent>
                       <SelectItem value="Active">Active</SelectItem>
                       <SelectItem value="Inactive">Inactive</SelectItem>
-                      <SelectItem value="Graduated">Graduated</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -643,3 +643,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

@@ -33,7 +33,8 @@ import {
   Mail, 
   Award,
   BookOpen,
-  PieChart
+  PieChart,
+  IdCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -94,20 +95,21 @@ export default function StudentDashboard() {
                 </div>
               </div>
             </div>
-            <CardContent className="pt-14 pb-6 px-6 space-y-4">
-              <div>
+            <CardContent className="pt-14 pb-6 px-6 space-y-6">
+              <div className="space-y-1">
                 <h2 className="font-headline text-2xl font-bold">
                   {profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.displayName || "Student User"}
                 </h2>
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <span className="text-secondary font-mono">ID: {profile?.studentIdNumber || "N/A"}</span>
-                </p>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Registration No</span>
+                  <span className="text-secondary font-mono font-bold text-sm tracking-tight">{profile?.studentIdNumber || "SPARK-UNASSIGNED"}</span>
+                </div>
               </div>
               
-              <div className="space-y-2 text-sm">
+              <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <Mail className="h-4 w-4 text-secondary" />
-                  <span>{user?.email}</span>
+                  <span className="truncate">{user?.email}</span>
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <MapPin className="h-4 w-4 text-secondary" />
@@ -119,14 +121,14 @@ export default function StudentDashboard() {
                 </div>
               </div>
 
-              <div className="pt-4 flex gap-2">
-                <Link href="/dashboard/ai-tutor" className="flex-1">
+              <div className="pt-2 flex flex-col gap-2">
+                <Link href="/dashboard/ai-tutor" className="w-full">
                   <Button variant="outline" className="w-full justify-start gap-2 border-secondary/30 text-secondary text-xs h-9">
-                    <BrainCircuit className="h-3.5 w-3.5" /> AI Tutor
+                    <BrainCircuit className="h-3.5 w-3.5" /> AI Tutor Assistant
                   </Button>
                 </Link>
-                <Button variant="outline" className="border-border text-muted-foreground text-xs h-9">
-                  Edit Profile
+                <Button variant="outline" className="w-full justify-center border-border text-muted-foreground text-xs h-9">
+                  Edit Profile Information
                 </Button>
               </div>
             </CardContent>

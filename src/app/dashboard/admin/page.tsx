@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { 
   Card, 
   CardContent, 
@@ -65,7 +65,13 @@ const INITIAL_STUDENTS = [
   { id: "8", regNo: "SPARK2024-008", name: "Student User 8", semester: "7th Semester", status: "Active", isOnline: false },
 ];
 
-export default function AdminDashboard() {
+const TAB_OPTIONS = ["All", "Online", "1st Year", "2nd Year", "3rd Year", "4th Year"];
+
+export default function AdminDashboard(props: { params: Promise<any>; searchParams: Promise<any> }) {
+  // Explicitly unwrap Next.js 15 dynamic APIs
+  use(props.params);
+  use(props.searchParams);
+
   const db = useFirestore();
   const { user } = useUser();
   const [students, setStudents] = useState(INITIAL_STUDENTS);
@@ -120,13 +126,15 @@ export default function AdminDashboard() {
     s.regNo.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const studentsByYear = {
-    "All": filteredStudents,
-    "Online": filteredStudents.filter(s => s.isOnline),
-    "1st Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "1st Year"),
-    "2nd Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "2nd Year"),
-    "3rd Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "3rd Year"),
-    "4th Year": filteredStudents.filter(s => getYearFromSemester(s.semester) === "4th Year"),
+  const getStudentsForTab = (tab: string) => {
+    switch(tab) {
+      case "Online": return filteredStudents.filter(s => s.isOnline);
+      case "1st Year": return filteredStudents.filter(s => getYearFromSemester(s.semester) === "1st Year");
+      case "2nd Year": return filteredStudents.filter(s => getYearFromSemester(s.semester) === "2nd Year");
+      case "3rd Year": return filteredStudents.filter(s => getYearFromSemester(s.semester) === "3rd Year");
+      case "4th Year": return filteredStudents.filter(s => getYearFromSemester(s.semester) === "4th Year");
+      default: return filteredStudents;
+    }
   };
 
   const addSubjectRow = () => {
@@ -347,89 +355,92 @@ export default function AdminDashboard() {
           <CardContent>
             <Tabs defaultValue="All" className="w-full">
               <TabsList className="bg-muted/50 border border-border mb-6 flex flex-wrap h-auto p-1">
-                {Object.keys(studentsByYear).map(year => (
-                  <TabsTrigger key={year} value={year} className="flex-1 py-2 gap-2">
-                    {year}
-                    {year === "Online" && <span className="text-[10px] bg-green-500 text-white px-1.5 rounded-full">{onlineCount}</span>}
+                {TAB_OPTIONS.map(tab => (
+                  <TabsTrigger key={tab} value={tab} className="flex-1 py-2 gap-2">
+                    {tab}
+                    {tab === "Online" && <span className="text-[10px] bg-green-500 text-white px-1.5 rounded-full">{onlineCount}</span>}
                   </TabsTrigger>
                 ))}
               </TabsList>
 
-              {Object.entries(studentsByYear).map(([year, list]) => (
-                <TabsContent key={year} value={year} className="mt-0">
-                  <div className="rounded-md border border-border overflow-hidden">
-                    <Table>
-                      <TableHeader className="bg-muted/30">
-                        <TableRow>
-                          <TableHead className="w-24">Status</TableHead>
-                          <TableHead>Reg No</TableHead>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Semester</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {list.length > 0 ? (
-                          list.map((student) => (
-                            <TableRow key={student.id}>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <span className={`h-2 w-2 rounded-full ${student.isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-muted-foreground/30'}`} />
-                                  <span className="text-[10px] font-bold uppercase text-muted-foreground">
-                                    {student.isOnline ? 'Active' : 'Offline'}
-                                  </span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="font-mono text-xs">{student.regNo}</TableCell>
-                              <TableCell className="font-medium">{student.name}</TableCell>
-                              <TableCell>{student.semester}</TableCell>
-                              <TableCell className="text-right flex justify-end gap-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="text-secondary hover:bg-secondary/10"
-                                  title="Add/Manage Marks"
-                                  onClick={() => {
-                                    setSelectedStudentForMarks(student);
-                                    setIsMarksDialogOpen(true);
-                                  }}
-                                >
-                                  <FileSpreadsheet className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="text-primary hover:bg-primary/10"
-                                  onClick={() => {
-                                    setEditingStudent(student);
-                                    setIsEditDialogOpen(true);
-                                  }}
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => handleDeleteStudent(student.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+              {TAB_OPTIONS.map((tab) => {
+                const list = getStudentsForTab(tab);
+                return (
+                  <TabsContent key={tab} value={tab} className="mt-0">
+                    <div className="rounded-md border border-border overflow-hidden">
+                      <Table>
+                        <TableHeader className="bg-muted/30">
+                          <TableRow>
+                            <TableHead className="w-24">Status</TableHead>
+                            <TableHead>Reg No</TableHead>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Semester</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {list.length > 0 ? (
+                            list.map((student) => (
+                              <TableRow key={student.id}>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <span className={`h-2 w-2 rounded-full ${student.isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-muted-foreground/30'}`} />
+                                    <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                                      {student.isOnline ? 'Active' : 'Offline'}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="font-mono text-xs">{student.regNo}</TableCell>
+                                <TableCell className="font-medium">{student.name}</TableCell>
+                                <TableCell>{student.semester}</TableCell>
+                                <TableCell className="text-right flex justify-end gap-2">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="text-secondary hover:bg-secondary/10"
+                                    title="Add/Manage Marks"
+                                    onClick={() => {
+                                      setSelectedStudentForMarks(student);
+                                      setIsMarksDialogOpen(true);
+                                    }}
+                                  >
+                                    <FileSpreadsheet className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="text-primary hover:bg-primary/10"
+                                    onClick={() => {
+                                      setEditingStudent(student);
+                                      setIsEditDialogOpen(true);
+                                    }}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => handleDeleteStudent(student.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                                No {tab.toLowerCase()} records found.
                               </TableCell>
                             </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                              No {year.toLowerCase()} records found.
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-              ))}
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TabsContent>
+                );
+              })}
             </Tabs>
           </CardContent>
         </Card>
@@ -643,4 +654,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { 
   Card, 
   CardContent, 
@@ -66,7 +66,11 @@ import { doc, setDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
-export default function StudentDashboard() {
+export default function StudentDashboard(props: { params: Promise<any>; searchParams: Promise<any> }) {
+  // Explicitly unwrap Next.js 15 dynamic APIs
+  use(props.params);
+  use(props.searchParams);
+
   const { user, isUserLoading: isAuthLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();

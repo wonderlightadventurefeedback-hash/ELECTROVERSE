@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useMemo } from "react";
 import { 
   Card, 
   CardContent, 
@@ -12,20 +13,13 @@ import {
   Users, 
   Settings, 
   ShieldCheck, 
-  BarChart3, 
-  Bell,
   Search,
-  Plus,
   Edit2,
   Save,
-  Trash2,
   Loader2,
-  UserPlus,
-  FileSpreadsheet,
-  X,
-  Activity,
   UserCheck,
-  Briefcase
+  Briefcase,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,21 +38,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFirestore, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
-
-const INITIAL_STUDENTS = [
-  { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active", isOnline: true, cgpa: 0, attendancePercentage: 0 },
-  { id: "2", regNo: "SPARK2024-002", name: "Student User 2", semester: "3rd Semester", status: "Active", isOnline: false, cgpa: 0, attendancePercentage: 0 },
-];
-
-const TAB_OPTIONS = ["All", "Online", "1st Year", "2nd Year", "3rd Year", "4th Year"];
+import { useFirestore, useUser, errorEmitter, FirestorePermissionError, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, addDoc, serverTimestamp, doc, setDoc, collectionGroup, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminDashboard(props: { params: Promise<any>; searchParams: Promise<any> }) {
   use(props.params);
@@ -66,119 +52,60 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
 
   const db = useFirestore();
   const { user } = useUser();
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const [editingStudent, setEditingStudent] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newStudent, setNewStudent] = useState({ name: "", regNo: "", semester: "1st Semester", status: "Active" });
 
-  const [isMarksDialogOpen, setIsMarksDialogOpen] = useState(false);
-  const [selectedStudentForMarks, setSelectedStudentForMarks] = useState<any>(null);
-  const [marksData, setMarksData] = useState({
-    session: "2024-25",
-    examType: "semester",
-    subjects: [
-      { code: "EE301", name: "Electrical Circuits", marks: "", grade: "A" },
-    ]
-  });
+  // Fetch all student profiles using collectionGroup
+  const studentsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collectionGroup(db, "studentProfile"));
+  }, [db]);
 
-  const onlineCount = students.filter(s => s.isOnline).length;
+  const { data: students, isLoading: isStudentsLoading } = useCollection(studentsQuery);
+
+  const onlineCount = students?.filter(s => s.isOnline).length || 0;
 
   const STATS = [
-    { label: "Total Students", value: "1,248", icon: Users, color: "text-secondary" },
+    { label: "Total Students", value: students?.length.toString() || "0", icon: Users, color: "text-secondary" },
     { label: "Online Now", value: onlineCount.toString(), icon: UserCheck, color: "text-green-500" },
     { label: "Faculty Members", value: "84", icon: Briefcase, color: "text-primary" },
     { label: "System Status", value: "Healthy", icon: ShieldCheck, color: "text-green-400" },
   ];
 
-  const RECENT_LOGINS = [
-    { user: "Student User 1", type: "student", action: "Logged in from Chrome / Windows", time: "Just now" },
-    { user: "Prof. Vikram Das", type: "teacher", action: "Accessed Gradebook Portal", time: "5 mins ago" },
-  ];
-
-  const getYearFromSemester = (sem: string) => {
-    if (sem.includes("1st") || sem.includes("2nd")) return "1st Year";
-    if (sem.includes("3rd") || sem.includes("4th")) return "2nd Year";
-    if (sem.includes("5th") || sem.includes("6th")) return "3rd Year";
-    if (sem.includes("7th") || sem.includes("8th")) return "4th Year";
-    return "Graduated";
-  };
-
-  const filteredStudents = students.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    s.regNo.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const getStudentsForTab = (tab: string) => {
-    switch(tab) {
-      case "Online": return filteredStudents.filter(s => s.isOnline);
-      case "1st Year": return filteredStudents.filter(s => getYearFromSemester(s.semester) === "1st Year");
-      case "2nd Year": return filteredStudents.filter(s => getYearFromSemester(s.semester) === "2nd Year");
-      case "3rd Year": return filteredStudents.filter(s => getYearFromSemester(s.semester) === "3rd Year");
-      case "4th Year": return filteredStudents.filter(s => getYearFromSemester(s.semester) === "4th Year");
-      default: return filteredStudents;
-    }
-  };
-
-  const updateSubjectField = (index: number, field: string, value: string) => {
-    const newSubjects = [...marksData.subjects];
-    (newSubjects[index] as any)[field] = value;
-    setMarksData({ ...marksData, subjects: newSubjects });
-  };
-
-  const handleSaveMarks = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!db || !selectedStudentForMarks || !user) return;
-    
-    setIsLoading(true);
-    const marksPayload = {
-      regNo: selectedStudentForMarks.regNo,
-      studentName: selectedStudentForMarks.name,
-      semester: selectedStudentForMarks.semester,
-      session: marksData.session,
-      examType: marksData.examType,
-      results: marksData.subjects,
-      recordedDate: serverTimestamp(),
-      teacherId: user.uid,
-    };
-
-    addDoc(collection(db, "grades"), marksPayload)
-      .then(() => {
-        toast({ title: "Marks Submitted", description: `Results for ${selectedStudentForMarks.name} recorded.` });
-        setIsMarksDialogOpen(false);
-      })
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({ path: "grades", operation: 'create', requestResourceData: marksPayload }));
-      })
-      .finally(() => setIsLoading(false));
-  };
+  const filteredStudents = useMemo(() => {
+    if (!students) return [];
+    return students.filter(s => {
+      const name = `${s.firstName || ""} ${s.lastName || ""}`.toLowerCase();
+      const regNo = (s.studentIdNumber || "").toLowerCase();
+      const search = searchQuery.toLowerCase();
+      return name.includes(search) || regNo.includes(search);
+    });
+  }, [students, searchQuery]);
 
   const handleSaveStudent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !editingStudent) return;
+    if (!db || !editingStudent || !editingStudent.id) return;
     setIsLoading(true);
     
-    // In a real app, the ID would be the student's actual UID.
-    // For this prototype, we update the StudentProfile in Firestore if possible.
+    // The student ID is the userId because of our path structure /users/{userId}/studentProfile/{userId}
     const studentRef = doc(db, "users", editingStudent.id, "studentProfile", editingStudent.id);
     const updateData = {
-      firstName: editingStudent.name.split(' ')[0] || "",
-      lastName: editingStudent.name.split(' ')[1] || "",
-      studentIdNumber: editingStudent.regNo,
+      firstName: editingStudent.firstName,
+      lastName: editingStudent.lastName,
+      studentIdNumber: editingStudent.studentIdNumber,
       semester: editingStudent.semester,
+      collegeName: editingStudent.collegeName,
       cgpa: parseFloat(editingStudent.cgpa) || 0,
       attendancePercentage: parseFloat(editingStudent.attendancePercentage) || 0,
     };
 
     setDoc(studentRef, updateData, { merge: true })
       .then(() => {
-        setStudents(prev => prev.map(s => s.id === editingStudent.id ? editingStudent : s));
-        toast({ title: "Record Updated", description: `Academic stats for ${editingStudent.name} synced.` });
+        toast({ title: "Record Updated", description: `Academic stats for ${editingStudent.firstName} synced.` });
         setIsEditDialogOpen(false);
       })
       .catch(async (error) => {
@@ -227,32 +154,54 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border border-border overflow-hidden">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow>
-                  <TableHead>Reg No</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Semester</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-mono text-xs">{student.regNo}</TableCell>
-                    <TableCell className="font-medium">{student.name}</TableCell>
-                    <TableCell>{student.semester}</TableCell>
-                    <TableCell className="text-right flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" className="text-primary" onClick={() => { setEditingStudent(student); setIsEditDialogOpen(true); }}>
-                        <Edit2 className="h-4 w-4" /> Manage Stats
-                      </Button>
-                    </TableCell>
+          {isStudentsLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : (
+            <div className="rounded-md border border-border overflow-hidden">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead>Reg No</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Semester</TableHead>
+                    <TableHead>College</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-mono text-xs">{student.studentIdNumber || "N/A"}</TableCell>
+                      <TableCell className="font-medium">{student.firstName} {student.lastName}</TableCell>
+                      <TableCell>{student.semester}</TableCell>
+                      <TableCell className="text-muted-foreground text-xs">{student.collegeName || "N/A"}</TableCell>
+                      <TableCell className="text-right flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-secondary hover:text-secondary hover:bg-secondary/10" 
+                          onClick={() => { setEditingStudent(student); setIsEditDialogOpen(true); }}
+                        >
+                          <Edit2 className="h-4 w-4 mr-2" /> Manage Stats
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredStudents.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        No students found matching your search.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -261,7 +210,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle>Update Academic Summary</DialogTitle>
-            <DialogDescription>Set current CGPA and Attendance for {editingStudent?.name}</DialogDescription>
+            <DialogDescription>Set current CGPA and Attendance for {editingStudent?.firstName} {editingStudent?.lastName}</DialogDescription>
           </DialogHeader>
           {editingStudent && (
             <form onSubmit={handleSaveStudent} className="space-y-4 py-4">
@@ -270,7 +219,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
                   <Label>Current CGPA</Label>
                   <Input 
                     type="number" step="0.01" max="10"
-                    value={editingStudent.cgpa} 
+                    value={editingStudent.cgpa || 0} 
                     onChange={(e) => setEditingStudent({...editingStudent, cgpa: e.target.value})}
                     className="bg-background"
                   />
@@ -279,7 +228,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
                   <Label>Attendance (%)</Label>
                   <Input 
                     type="number" step="0.1" max="100"
-                    value={editingStudent.attendancePercentage} 
+                    value={editingStudent.attendancePercentage || 0} 
                     onChange={(e) => setEditingStudent({...editingStudent, attendancePercentage: e.target.value})}
                     className="bg-background"
                   />
@@ -297,7 +246,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
                 </Select>
               </div>
               <DialogFooter className="pt-4">
-                <Button type="submit" className="w-full gap-2" disabled={isLoading}>
+                <Button type="submit" className="w-full gap-2 bg-primary hover:bg-primary/90" disabled={isLoading}>
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save Academic Stats
                 </Button>

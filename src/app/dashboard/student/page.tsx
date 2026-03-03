@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -34,26 +34,97 @@ import {
   Award,
   BookOpen,
   PieChart,
-  IdCard
+  IdCard,
+  Edit,
+  Save,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import Link from "next/link";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { doc, setDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 export default function StudentDashboard() {
   const { user, isUserLoading: isAuthLoading } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    studentIdNumber: "",
+    address: "",
+    departmentName: ""
+  });
 
   // Fetch student profile from Firestore
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
-    // Assuming profile doc ID matches user UID as per security rules requirement
     return doc(db, "users", user.uid, "studentProfile", user.uid);
   }, [db, user]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  // Sync form data when profile is loaded
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        firstName: profile.firstName || "",
+        lastName: profile.lastName || "",
+        studentIdNumber: profile.studentIdNumber || "",
+        address: profile.address || "",
+        departmentName: profile.departmentName || "B.Tech Electrical Engineering"
+      });
+    }
+  }, [profile]);
+
+  const handleUpdateProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!db || !user) return;
+
+    setIsSaving(true);
+    const profileData = {
+      ...formData,
+      id: user.uid,
+      email: user.email,
+    };
+
+    const docRef = doc(db, "users", user.uid, "studentProfile", user.uid);
+    setDoc(docRef, profileData, { merge: true })
+      .then(() => {
+        toast({
+          title: "Profile Updated",
+          description: "Your information has been successfully saved.",
+        });
+        setIsEditDialogOpen(false);
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: profileData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
+  };
 
   const DUMMY_ATTENDANCE = [
     { subject: "Electrical Circuits", percentage: 95, status: "Good" },
@@ -127,9 +198,75 @@ export default function StudentDashboard() {
                     <BrainCircuit className="h-3.5 w-3.5" /> AI Tutor Assistant
                   </Button>
                 </Link>
-                <Button variant="outline" className="w-full justify-center border-border text-muted-foreground text-xs h-9">
-                  Edit Profile Information
-                </Button>
+
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full justify-center border-border text-muted-foreground text-xs h-9 gap-2">
+                      <Edit className="h-3 w-3" /> Edit Profile Information
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-card border-border">
+                    <DialogHeader>
+                      <DialogTitle>Update Profile</DialogTitle>
+                      <DialogDescription>Change your basic academic and contact information.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateProfile} className="space-y-4 py-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>First Name</Label>
+                          <Input 
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                            className="bg-background"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Last Name</Label>
+                          <Input 
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                            className="bg-background"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Registration Number</Label>
+                        <Input 
+                          value={formData.studentIdNumber}
+                          onChange={(e) => setFormData({...formData, studentIdNumber: e.target.value})}
+                          placeholder="e.g., SPARK2024-001"
+                          className="bg-background"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Department</Label>
+                        <Input 
+                          value={formData.departmentName}
+                          onChange={(e) => setFormData({...formData, departmentName: e.target.value})}
+                          className="bg-background"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Address</Label>
+                        <Input 
+                          value={formData.address}
+                          onChange={(e) => setFormData({...formData, address: e.target.value})}
+                          className="bg-background"
+                        />
+                      </div>
+                      <DialogFooter className="pt-4">
+                        <Button type="submit" className="gap-2" disabled={isSaving}>
+                          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>

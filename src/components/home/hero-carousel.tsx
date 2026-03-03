@@ -8,19 +8,37 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { cn } from "@/lib/utils";
 
 export function HeroCarousel() {
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+
   const plugin = React.useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: false })
+    Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
   const heroImages = PlaceHolderImages.filter(img => img.id.startsWith('hero'));
 
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
   return (
     <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden">
       <Carousel
+        setApi={setApi}
         plugins={[plugin.current]}
         className="w-full h-full"
         opts={{
@@ -59,11 +77,17 @@ export function HeroCarousel() {
           ))}
         </CarouselContent>
       </Carousel>
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-10">
         {heroImages.map((_, i) => (
-          <div key={i} className="h-1 w-8 bg-muted-foreground/30 rounded-full overflow-hidden">
-            <div className="h-full bg-secondary opacity-50" />
-          </div>
+          <button
+            key={i}
+            onClick={() => api?.scrollTo(i)}
+            className={cn(
+              "h-1.5 transition-all duration-300 rounded-full",
+              current === i ? "w-12 bg-secondary" : "w-6 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+            )}
+            aria-label={`Go to slide ${i + 1}`}
+          />
         ))}
       </div>
     </section>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useMemo } from "react";
@@ -19,7 +18,9 @@ import {
   Loader2,
   UserCheck,
   Briefcase,
-  Activity
+  Plus,
+  Trash2,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +44,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirestore, useUser, errorEmitter, FirestorePermissionError, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, doc, setDoc, collectionGroup, query } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, setDoc, collectionGroup, query, where, getDocs } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminDashboard(props: { params: Promise<any>; searchParams: Promise<any> }) {
@@ -58,6 +59,14 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
 
   const [editingStudent, setEditingStudent] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
+  const [resultStudent, setResultStudent] = useState<any>(null);
+  const [resultForm, setResultForm] = useState({
+    session: "2024-25",
+    examType: "semester",
+    subjects: [{ code: "", name: "", marks: "" }]
+  });
 
   // Fetch all student profiles using collectionGroup
   const studentsQuery = useMemoFirebase(() => {
@@ -91,7 +100,6 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
     if (!db || !editingStudent || !editingStudent.id) return;
     setIsLoading(true);
     
-    // The student ID is the userId because of our path structure /users/{userId}/studentProfile/{userId}
     const studentRef = doc(db, "users", editingStudent.id, "studentProfile", editingStudent.id);
     const updateData = {
       firstName: editingStudent.firstName,
@@ -112,6 +120,75 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
         errorEmitter.emit('permission-error', new FirestorePermissionError({ path: studentRef.path, operation: 'update', requestResourceData: updateData }));
       })
       .finally(() => setIsLoading(false));
+  };
+
+  const handleAddSubject = () => {
+    setResultForm({
+      ...resultForm,
+      subjects: [...resultForm.subjects, { code: "", name: "", marks: "" }]
+    });
+  };
+
+  const handleRemoveSubject = (index: number) => {
+    const newSubjects = resultForm.subjects.filter((_, i) => i !== index);
+    setResultForm({ ...resultForm, subjects: newSubjects });
+  };
+
+  const handleSubjectChange = (index: number, field: string, value: string) => {
+    const newSubjects = [...resultForm.subjects];
+    newSubjects[index] = { ...newSubjects[index], [field]: value };
+    setResultForm({ ...resultForm, subjects: newSubjects });
+  };
+
+  const handleSaveResults = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!db || !resultStudent || !user) return;
+    setIsLoading(true);
+
+    const gradesRef = collection(db, "grades");
+    const resultData = {
+      regNo: resultStudent.studentIdNumber,
+      studentName: `${resultStudent.firstName} ${resultStudent.lastName}`,
+      session: resultForm.session,
+      examType: resultForm.examType,
+      results: resultForm.subjects,
+      recordedDate: serverTimestamp(),
+      teacherId: user.uid
+    };
+
+    // Check if result already exists to overwrite or add new
+    try {
+      const q = query(
+        gradesRef,
+        where("regNo", "==", resultStudent.studentIdNumber),
+        where("session", "==", resultForm.session),
+        where("examType", "==", resultForm.examType)
+      );
+      const existing = await getDocs(q);
+      
+      if (!existing.empty) {
+        // Update existing
+        const docRef = doc(db, "grades", existing.docs[0].id);
+        await setDoc(docRef, resultData, { merge: true });
+      } else {
+        // Create new
+        await addDoc(gradesRef, resultData);
+      }
+
+      toast({ 
+        title: "Results Published", 
+        description: `Examination results for ${resultStudent.firstName} have been saved.` 
+      });
+      setIsResultDialogOpen(false);
+    } catch (error: any) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({ 
+        path: 'grades', 
+        operation: 'write', 
+        requestResourceData: resultData 
+      }));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -146,7 +223,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <CardTitle className="font-headline">Manage Student Records</CardTitle>
-            <CardDescription>Update academic summary stats (CGPA, Attendance)</CardDescription>
+            <CardDescription>Update academic summary stats (CGPA, Attendance) & Publish Results</CardDescription>
           </div>
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -186,7 +263,23 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
                           className="text-secondary hover:text-secondary hover:bg-secondary/10" 
                           onClick={() => { setEditingStudent(student); setIsEditDialogOpen(true); }}
                         >
-                          <Edit2 className="h-4 w-4 mr-2" /> Manage Stats
+                          <Edit2 className="h-4 w-4 mr-2" /> Stats
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-primary hover:text-primary hover:bg-primary/10" 
+                          onClick={() => { 
+                            setResultStudent(student); 
+                            setIsResultDialogOpen(true); 
+                            setResultForm({
+                              session: "2024-25",
+                              examType: "semester",
+                              subjects: [{ code: "", name: "", marks: "" }]
+                            });
+                          }}
+                        >
+                          <FileText className="h-4 w-4 mr-2" /> Results
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -205,7 +298,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
         </CardContent>
       </Card>
 
-      {/* Edit Student / Manage Stats Dialog */}
+      {/* Edit Student Stats Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
@@ -249,6 +342,104 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
                 <Button type="submit" className="w-full gap-2 bg-primary hover:bg-primary/90" disabled={isLoading}>
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save Academic Stats
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Results Dialog */}
+      <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Publish Detailed Results</DialogTitle>
+            <DialogDescription>Add subject-wise marks for {resultStudent?.firstName} {resultStudent?.lastName}</DialogDescription>
+          </DialogHeader>
+          {resultStudent && (
+            <form onSubmit={handleSaveResults} className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Academic Session</Label>
+                  <Select value={resultForm.session} onValueChange={(val) => setResultForm({...resultForm, session: val})}>
+                    <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2024-25">2024-25</SelectItem>
+                      <SelectItem value="2023-24">2023-24</SelectItem>
+                      <SelectItem value="2022-23">2022-23</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Exam Category</Label>
+                  <Select value={resultForm.examType} onValueChange={(val) => setResultForm({...resultForm, examType: val})}>
+                    <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="semester">Semester Results</SelectItem>
+                      <SelectItem value="internal">Internal Results</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-lg font-bold">Subject Marks</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddSubject} className="gap-2">
+                    <Plus className="h-4 w-4" /> Add Subject
+                  </Button>
+                </div>
+                
+                {resultForm.subjects.map((sub, idx) => (
+                  <div key={idx} className="grid grid-cols-12 gap-3 items-end p-4 bg-muted/20 rounded-lg border border-border">
+                    <div className="col-span-3 space-y-1">
+                      <Label className="text-[10px] uppercase">Code</Label>
+                      <Input 
+                        placeholder="EE101" 
+                        value={sub.code} 
+                        onChange={(e) => handleSubjectChange(idx, "code", e.target.value)}
+                        className="bg-background h-9"
+                      />
+                    </div>
+                    <div className="col-span-5 space-y-1">
+                      <Label className="text-[10px] uppercase">Subject Name</Label>
+                      <Input 
+                        placeholder="Power Systems" 
+                        value={sub.name} 
+                        onChange={(e) => handleSubjectChange(idx, "name", e.target.value)}
+                        className="bg-background h-9"
+                      />
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <Label className="text-[10px] uppercase">Marks (%)</Label>
+                      <Input 
+                        type="number" 
+                        placeholder="85" 
+                        value={sub.marks} 
+                        onChange={(e) => handleSubjectChange(idx, "marks", e.target.value)}
+                        className="bg-background h-9"
+                      />
+                    </div>
+                    <div className="col-span-2 flex justify-end pb-1">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleRemoveSubject(idx)}
+                        disabled={resultForm.subjects.length === 1}
+                        className="text-destructive hover:bg-destructive/10 h-9 w-9"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <DialogFooter className="pt-6">
+                <Button type="submit" className="w-full gap-2 bg-primary hover:bg-primary/90 py-6" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                  Publish Examination Result
                 </Button>
               </DialogFooter>
             </form>

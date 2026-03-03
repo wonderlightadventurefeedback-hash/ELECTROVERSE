@@ -18,12 +18,10 @@
  *    directly on operational documents (Grades, Enrollments) to avoid expensive cross-document 
  *    lookups during rule evaluation.
  * 2. Role-Based Access: Global administrators are identified by the existence of a document 
- *    in the 'roles_admin' collection.
+ *    in the 'roles_admin' collection OR by specific institutional admin email.
  * 3. User Ownership: Students and Teachers have exclusive write access to their own profile 
  *    subcollections, while sharing read access to academic operational data based on their 
  *    enrolled/teaching status.
- * 4. Prototyping Flexibility: Rules strictly enforce 'who' can access data but remain 
- *    flexible regarding the 'shape' of the data to facilitate rapid development.
  */
 
 rules_version = '2';
@@ -44,7 +42,10 @@ service cloud.firestore {
 
     /** @description Checks if the authenticated user is a registered administrator. */
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) ||
+        request.auth.token.email == "nalandaeeconnect@gmail.com"
+      );
     }
 
     /** @description Helper for destructive operations to ensure document exists and user has rights. */
@@ -56,10 +57,6 @@ service cloud.firestore {
 
     /**
      * @description Private profile information for students.
-     * @path /users/{userId}/studentProfile/{profileId}
-     * @allow Authenticated user (create) where UID matches path.
-     * @deny User B (update) User A's profile.
-     * @principle Path-based ownership and relational integrity.
      */
     match /users/{userId}/studentProfile/{profileId} {
       allow get, list: if isOwner(userId) || isAdmin();
@@ -70,10 +67,6 @@ service cloud.firestore {
 
     /**
      * @description Private profile information for teachers.
-     * @path /users/{userId}/teacherProfile/{profileId}
-     * @allow Authenticated user (create) where UID matches path.
-     * @deny User B (update) User A's profile.
-     * @principle Path-based ownership and relational integrity.
      */
     match /users/{userId}/teacherProfile/{profileId} {
       allow get, list: if isOwner(userId) || isAdmin();
@@ -84,10 +77,6 @@ service cloud.firestore {
 
     /**
      * @description Administrative roles registry.
-     * @path /roles_admin/{adminId}
-     * @allow Authenticated user (get) their own admin status.
-     * @deny Public (create) admin records.
-     * @principle Restricts role assignment to system-level operations.
      */
     match /roles_admin/{adminId} {
       allow get: if isSignedIn();
@@ -96,11 +85,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Public departmental information (About Us, Contact).
-     * @path /departmentInfo/{docId}
-     * @allow Public (get) "general" document.
-     * @deny Unauthenticated (update) department info.
-     * @principle Public read with role-based write access.
+     * @description Public departmental information.
      */
     match /departmentInfo/{docId} {
       allow get, list: if true;
@@ -109,10 +94,6 @@ service cloud.firestore {
 
     /**
      * @description Public news and announcements.
-     * @path /newsPosts/{newsPostId}
-     * @allow Public (list) news posts.
-     * @deny Non-admin (create) news post.
-     * @principle Public consumption with administrative content control.
      */
     match /newsPosts/{newsPostId} {
       allow get, list: if true;
@@ -121,9 +102,6 @@ service cloud.firestore {
 
     /**
      * @description Public image assets for galleries and carousels.
-     * @path /images/{imageId}
-     * @allow Public (get) image metadata.
-     * @deny Unauthenticated (delete) images.
      */
     match /images/{imageId} {
       allow get, list: if true;
@@ -132,9 +110,6 @@ service cloud.firestore {
 
     /**
      * @description visual achievement gallery items.
-     * @path /galleryItems/{galleryItemId}
-     * @allow Public (list) gallery achievements.
-     * @deny Non-admin (update) gallery metadata.
      */
     match /galleryItems/{galleryItemId} {
       allow get, list: if true;
@@ -143,9 +118,6 @@ service cloud.firestore {
 
     /**
      * @description Academic semester definitions.
-     * @path /semesters/{semesterId}
-     * @allow Any student (list) semesters to see schedules.
-     * @deny Non-admin (create) a new semester.
      */
     match /semesters/{semesterId} {
       allow get, list: if isSignedIn();
@@ -154,9 +126,6 @@ service cloud.firestore {
 
     /**
      * @description Master course catalog.
-     * @path /courses/{courseId}
-     * @allow Signed-in user (get) course details.
-     * @deny Student (update) course description.
      */
     match /courses/{courseId} {
       allow get, list: if isSignedIn();
@@ -165,9 +134,6 @@ service cloud.firestore {
 
     /**
      * @description Specific instances of courses taught by teachers.
-     * @path /courseOfferings/{courseOfferingId}
-     * @allow Signed-in user (list) offerings.
-     * @deny Student (update) teacherId for an offering.
      */
     match /courseOfferings/{courseOfferingId} {
       allow get, list: if isSignedIn();
@@ -176,10 +142,6 @@ service cloud.firestore {
 
     /**
      * @description Student enrollment records.
-     * @path /enrollments/{enrollmentId}
-     * @allow Student (get) their own enrollment.
-     * @deny User A (list) User B's enrollments.
-     * @principle Relationship-based access via denormalized IDs.
      */
     match /enrollments/{enrollmentId} {
       allow get, list: if isSignedIn() && (isOwner(resource.data.studentId) || isOwner(resource.data.teacherId) || isAdmin());
@@ -190,9 +152,6 @@ service cloud.firestore {
 
     /**
      * @description Examination events for course offerings.
-     * @path /examinations/{examinationId}
-     * @allow Enrolled student (get) exam details.
-     * @deny Student (create) an examination record.
      */
     match /examinations/{examinationId} {
       allow get, list: if isSignedIn();
@@ -201,23 +160,16 @@ service cloud.firestore {
 
     /**
      * @description Student grades for specific examinations.
-     * @path /grades/{gradeId}
-     * @allow Student (get) their own grade.
-     * @deny Student (create) their own grade.
-     * @principle Secure access for students, write access for instructors.
      */
     match /grades/{gradeId} {
       allow get, list: if isSignedIn() && (isOwner(resource.data.studentId) || isOwner(resource.data.teacherId) || isAdmin());
-      allow create: if isAdmin() || isOwner(request.resource.data.teacherId);
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.teacherId == request.auth.uid);
       allow update: if (resource != null && isOwner(resource.data.teacherId)) || isAdmin();
       allow delete: if isAdmin();
     }
 
     /**
      * @description Student attendance records.
-     * @path /attendanceRecords/{attendanceRecordId}
-     * @allow Student (list) their own attendance history.
-     * @deny Student (update) an attendance status.
      */
     match /attendanceRecords/{attendanceRecordId} {
       allow get, list: if isSignedIn() && (isOwner(resource.data.studentId) || isOwner(resource.data.teacherId) || isAdmin());
@@ -227,9 +179,6 @@ service cloud.firestore {
 
     /**
      * @description AI Tutor knowledge base topics.
-     * @path /electricalEngineeringTopics/{topicId}
-     * @allow Public (list) engineering topics.
-     * @deny Public (create) new topics.
      */
     match /electricalEngineeringTopics/{topicId} {
       allow get, list: if true;
@@ -238,9 +187,6 @@ service cloud.firestore {
 
     /**
      * @description Academic resources linked to topics.
-     * @path /academicResources/{resourceId}
-     * @allow Public (get) study materials.
-     * @deny Any user (delete) academic resources.
      */
     match /academicResources/{resourceId} {
       allow get, list: if true;

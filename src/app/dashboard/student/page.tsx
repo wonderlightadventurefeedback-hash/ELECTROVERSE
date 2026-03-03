@@ -37,7 +37,9 @@ import {
   IdCard,
   Edit,
   Save,
-  Loader2
+  Loader2,
+  School,
+  Hash
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +53,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
 import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -68,8 +77,8 @@ export default function StudentDashboard() {
     firstName: "",
     lastName: "",
     studentIdNumber: "",
-    address: "",
-    departmentName: ""
+    collegeName: "",
+    semester: ""
   });
 
   // Fetch student profile from Firestore
@@ -87,8 +96,8 @@ export default function StudentDashboard() {
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
         studentIdNumber: profile.studentIdNumber || "",
-        address: profile.address || "",
-        departmentName: profile.departmentName || "B.Tech Electrical Engineering"
+        collegeName: profile.collegeName || "",
+        semester: profile.semester || "1st Semester"
       });
     }
   }, [profile]);
@@ -183,12 +192,12 @@ export default function StudentDashboard() {
                   <span className="truncate">{user?.email}</span>
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
-                  <MapPin className="h-4 w-4 text-secondary" />
-                  <span>{profile?.address || "Location not set"}</span>
+                  <School className="h-4 w-4 text-secondary" />
+                  <span>{profile?.collegeName || "College not set"}</span>
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
-                  <GraduationCap className="h-4 w-4 text-secondary" />
-                  <span>{profile?.departmentName || "B.Tech Electrical Engineering"}</span>
+                  <Calendar className="h-4 w-4 text-secondary" />
+                  <span>{profile?.semester || "Semester not set"}</span>
                 </div>
               </div>
 
@@ -242,21 +251,30 @@ export default function StudentDashboard() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Department</Label>
+                        <Label>College Name</Label>
                         <Input 
-                          value={formData.departmentName}
-                          onChange={(e) => setFormData({...formData, departmentName: e.target.value})}
+                          value={formData.collegeName}
+                          onChange={(e) => setFormData({...formData, collegeName: e.target.value})}
+                          placeholder="Enter your college name"
                           className="bg-background"
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Address</Label>
-                        <Input 
-                          value={formData.address}
-                          onChange={(e) => setFormData({...formData, address: e.target.value})}
-                          className="bg-background"
-                        />
+                        <Label>Semester</Label>
+                        <Select 
+                          value={formData.semester} 
+                          onValueChange={(val) => setFormData({...formData, semester: val})}
+                        >
+                          <SelectTrigger className="bg-background">
+                            <SelectValue placeholder="Select Semester" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({length: 8}, (_, i) => `${i+1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Semester`).map(sem => (
+                              <SelectItem key={sem} value={sem}>{sem}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <DialogFooter className="pt-4">
                         <Button type="submit" className="gap-2" disabled={isSaving}>
@@ -298,7 +316,7 @@ export default function StudentDashboard() {
                  </div>
                  <div>
                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Semester</p>
-                   <p className="text-sm font-bold">4th Semester</p>
+                   <p className="text-sm font-bold">{profile?.semester || "4th Semester"}</p>
                  </div>
                </Card>
                <Card className="bg-card border-border px-4 py-2 flex items-center gap-3">

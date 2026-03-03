@@ -170,6 +170,13 @@ export default function AdminDashboard() {
     };
 
     addDoc(collection(db, "grades"), marksPayload)
+      .then(() => {
+        toast({
+          title: "Marks Submitted",
+          description: `Results for ${selectedStudentForMarks.name} are now available for lookup.`,
+        });
+        setIsMarksDialogOpen(false);
+      })
       .catch(async (error) => {
         const permissionError = new FirestorePermissionError({
           path: "grades",
@@ -177,15 +184,10 @@ export default function AdminDashboard() {
           requestResourceData: marksPayload,
         });
         errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-
-    toast({
-      title: "Marks Submitted",
-      description: `Results for ${selectedStudentForMarks.name} are being published.`,
-    });
-    
-    setIsMarksDialogOpen(false);
-    setIsLoading(false);
   };
 
   const handleSaveStudent = (e: React.FormEvent) => {
@@ -457,7 +459,7 @@ export default function AdminDashboard() {
         <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage Student Marks</DialogTitle>
-            <DialogDescription>Record results for {selectedStudentForMarks?.name}</DialogDescription>
+            <DialogDescription>Record results for {selectedStudentForMarks?.name} ({selectedStudentForMarks?.regNo})</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveMarks} className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -633,4 +635,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

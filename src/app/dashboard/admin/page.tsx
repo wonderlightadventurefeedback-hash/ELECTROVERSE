@@ -148,6 +148,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
     const gradesRef = collection(db, "grades");
     const resultData = {
       regNo: resultStudent.studentIdNumber,
+      studentId: resultStudent.id,
       studentName: `${resultStudent.firstName} ${resultStudent.lastName}`,
       session: resultForm.session,
       examType: resultForm.examType,
@@ -156,7 +157,6 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
       teacherId: user.uid
     };
 
-    // Check if result already exists to overwrite or add new
     try {
       const q = query(
         gradesRef,
@@ -167,11 +167,9 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
       const existing = await getDocs(q);
       
       if (!existing.empty) {
-        // Update existing
         const docRef = doc(db, "grades", existing.docs[0].id);
         await setDoc(docRef, resultData, { merge: true });
       } else {
-        // Create new
         await addDoc(gradesRef, resultData);
       }
 
@@ -195,8 +193,8 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
     <div className="container mx-auto px-4 py-12 space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="font-headline text-4xl font-bold">Admin Control Panel</h1>
-          <p className="text-muted-foreground">Managing SparkLux Academic Registry & User Sessions.</p>
+          <h1 className="font-headline text-4xl font-bold text-glow">Admin Control Panel</h1>
+          <p className="text-muted-foreground">Managing SparkLux Academic Registry & Results.</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="border-secondary/30 text-secondary">
@@ -223,7 +221,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <CardTitle className="font-headline">Manage Student Records</CardTitle>
-            <CardDescription>Update academic summary stats (CGPA, Attendance) & Publish Results</CardDescription>
+            <CardDescription>Update stats (CGPA, Attendance) & Publish Results by Registration No.</CardDescription>
           </div>
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -252,7 +250,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
                 <TableBody>
                   {filteredStudents.map((student) => (
                     <TableRow key={student.id}>
-                      <TableCell className="font-mono text-xs">{student.studentIdNumber || "N/A"}</TableCell>
+                      <TableCell className="font-mono text-xs text-secondary font-bold">{student.studentIdNumber || "N/A"}</TableCell>
                       <TableCell className="font-medium">{student.firstName} {student.lastName}</TableCell>
                       <TableCell>{student.semester}</TableCell>
                       <TableCell className="text-muted-foreground text-xs">{student.collegeName || "N/A"}</TableCell>
@@ -354,7 +352,7 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
         <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Publish Detailed Results</DialogTitle>
-            <DialogDescription>Add subject-wise marks for {resultStudent?.firstName} {resultStudent?.lastName}</DialogDescription>
+            <DialogDescription>Add subject-wise marks for Reg No: {resultStudent?.studentIdNumber}</DialogDescription>
           </DialogHeader>
           {resultStudent && (
             <form onSubmit={handleSaveResults} className="space-y-6 py-4">
@@ -437,9 +435,9 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
               </div>
 
               <DialogFooter className="pt-6">
-                <Button type="submit" className="w-full gap-2 bg-primary hover:bg-primary/90 py-6" disabled={isLoading}>
+                <Button type="submit" className="w-full gap-2 bg-primary hover:bg-primary/90 py-6 text-lg" disabled={isLoading}>
                   {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                  Publish Examination Result
+                  Publish Marks Summary
                 </Button>
               </DialogFooter>
             </form>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use } from "react";
@@ -13,13 +12,12 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, FileX, GraduationCap, Calendar, User, FileText } from "lucide-react";
+import { Loader2, Search, FileX, GraduationCap, FileText } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function ResultsPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  // Explicitly unwrap Next.js 15 dynamic APIs
   use(props.params);
   use(props.searchParams);
 

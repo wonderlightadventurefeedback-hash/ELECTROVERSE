@@ -24,13 +24,9 @@ service cloud.firestore {
       );
     }
 
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
     // --- COLLECTION RULES ---
 
-    // Student and Teacher profiles using recursive match to support collectionGroup queries used in the Admin Dashboard
+    // Student and Teacher profiles
     match /{path=**}/studentProfile/{profileId} {
       allow get, list: if isSignedIn() && (isAdmin() || request.auth.uid == profileId);
       allow create: if (isSignedIn() && request.auth.uid == profileId) || isAdmin();
@@ -87,28 +83,23 @@ service cloud.firestore {
     }
 
     match /enrollments/{enrollmentId} {
-      allow get, list: if isSignedIn() && (isOwner(resource.data.studentId) || isOwner(resource.data.teacherId) || isAdmin());
-      allow create: if isAdmin() || isOwner(request.resource.data.studentId);
-      allow update: if isAdmin() || (resource != null && isOwner(resource.data.teacherId));
-      allow delete: if isAdmin();
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /examinations/{examinationId} {
       allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin() || (resource != null && isOwner(resource.data.teacherId));
+      allow create, update, delete: if isAdmin();
     }
 
     match /grades/{gradeId} {
-      allow get, list: if isSignedIn() && (isOwner(resource.data.studentId) || isOwner(resource.data.teacherId) || isAdmin());
-      allow create: if isAdmin() || (isSignedIn() && request.resource.data.teacherId == request.auth.uid);
-      allow update: if (resource != null && isOwner(resource.data.teacherId)) || isAdmin();
-      allow delete: if isAdmin();
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /attendanceRecords/{attendanceRecordId} {
-      allow get, list: if isSignedIn() && (isOwner(resource.data.studentId) || isOwner(resource.data.teacherId) || isAdmin());
-      allow create, update: if isAdmin() || isOwner(request.resource.data.teacherId);
-      allow delete: if isAdmin();
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /electricalEngineeringTopics/{topicId} {

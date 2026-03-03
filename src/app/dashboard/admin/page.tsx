@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -23,7 +23,9 @@ import {
   Loader2,
   UserPlus,
   FileSpreadsheet,
-  X
+  X,
+  Activity,
+  UserCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,28 +54,20 @@ import { useFirestore, useUser, errorEmitter, FirestorePermissionError } from "@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const INITIAL_STUDENTS = [
-  { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active" },
-  { id: "2", regNo: "SPARK2024-002", name: "Student User 2", semester: "3rd Semester", status: "Active" },
-  { id: "3", regNo: "SPARK2024-003", name: "Student User 3", semester: "4th Semester", status: "Active" },
-  { id: "4", regNo: "SPARK2024-004", name: "Student User 4", semester: "1st Semester", status: "Active" },
-  { id: "5", regNo: "SPARK2024-005", name: "Student User 5", semester: "6th Semester", status: "Active" },
-  { id: "6", regNo: "SPARK2024-006", name: "Student User 6", semester: "8th Semester", status: "Active" },
-  { id: "7", regNo: "SPARK2024-007", name: "Student User 7", semester: "5th Semester", status: "Active" },
-  { id: "8", regNo: "SPARK2024-008", name: "Student User 8", semester: "7th Semester", status: "Active" },
-];
-
-const INITIAL_STATS = [
-  { label: "Total Students", value: "1,248", icon: Users, color: "text-secondary" },
-  { label: "Faculty Members", value: "84", icon: Users, color: "text-secondary" },
-  { label: "Active Results", value: "12 Sessions", icon: BarChart3, color: "text-secondary" },
-  { label: "System Status", value: "Healthy", icon: ShieldCheck, color: "text-green-500" },
+  { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active", isOnline: true },
+  { id: "2", regNo: "SPARK2024-002", name: "Student User 2", semester: "3rd Semester", status: "Active", isOnline: false },
+  { id: "3", regNo: "SPARK2024-003", name: "Student User 3", semester: "4th Semester", status: "Active", isOnline: true },
+  { id: "4", regNo: "SPARK2024-004", name: "Student User 4", semester: "1st Semester", status: "Active", isOnline: false },
+  { id: "5", regNo: "SPARK2024-005", name: "Student User 5", semester: "6th Semester", status: "Active", isOnline: false },
+  { id: "6", regNo: "SPARK2024-006", name: "Student User 6", semester: "8th Semester", status: "Active", isOnline: true },
+  { id: "7", regNo: "SPARK2024-007", name: "Student User 7", semester: "5th Semester", status: "Active", isOnline: false },
+  { id: "8", regNo: "SPARK2024-008", name: "Student User 8", semester: "7th Semester", status: "Active", isOnline: false },
 ];
 
 export default function AdminDashboard() {
   const db = useFirestore();
   const { user } = useUser();
   const [students, setStudents] = useState(INITIAL_STUDENTS);
-  const [stats, setStats] = useState(INITIAL_STATS);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -94,6 +88,22 @@ export default function AdminDashboard() {
       { code: "EE302", name: "Microprocessors", marks: "", grade: "B" },
     ]
   });
+
+  const onlineCount = students.filter(s => s.isOnline).length;
+
+  const STATS = [
+    { label: "Total Students", value: "1,248", icon: Users, color: "text-secondary" },
+    { label: "Online Now", value: onlineCount.toString(), icon: UserCheck, color: "text-green-500" },
+    { label: "Faculty Members", value: "84", icon: Users, color: "text-secondary" },
+    { label: "System Status", value: "Healthy", icon: ShieldCheck, color: "text-green-400" },
+  ];
+
+  const RECENT_LOGINS = [
+    { user: "Student User 1", action: "Logged in from Chrome / Windows", time: "Just now" },
+    { user: "Student User 3", action: "Logged in from Safari / iOS", time: "12 mins ago" },
+    { user: "Student User 6", action: "Logged in from Mobile App", time: "45 mins ago" },
+    { user: "Dr. Sarah Smith", action: "Accessed Admin Panel", time: "2 hours ago" },
+  ];
 
   const getYearFromSemester = (sem: string) => {
     if (sem.includes("1st") || sem.includes("2nd")) return "1st Year";
@@ -141,7 +151,7 @@ export default function AdminDashboard() {
       toast({
         variant: "destructive",
         title: "Configuration Error",
-        description: "Firestore or Authentication is not available. Ensure you are signed in as an admin.",
+        description: "Firestore or Authentication is not available.",
       });
       return;
     }
@@ -156,10 +166,9 @@ export default function AdminDashboard() {
       examType: marksData.examType,
       results: marksData.subjects,
       recordedDate: serverTimestamp(),
-      teacherId: user.uid, // Required for security rules
+      teacherId: user.uid,
     };
 
-    // Non-blocking write
     addDoc(collection(db, "grades"), marksPayload)
       .catch(async (error) => {
         const permissionError = new FirestorePermissionError({
@@ -172,7 +181,7 @@ export default function AdminDashboard() {
 
     toast({
       title: "Marks Submitted",
-      description: `Results for ${selectedStudentForMarks.name} are being published in the background.`,
+      description: `Results for ${selectedStudentForMarks.name} are being published.`,
     });
     
     setIsMarksDialogOpen(false);
@@ -202,6 +211,7 @@ export default function AdminDashboard() {
       const studentToAdd = {
         ...newStudent,
         id: (students.length + 1).toString(),
+        isOnline: false
       };
       setStudents(prev => [...prev, studentToAdd]);
       toast({
@@ -228,7 +238,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="font-headline text-4xl font-bold">Admin Control Panel</h1>
-          <p className="text-muted-foreground">Welcome back, Nalanda EE Admin.</p>
+          <p className="text-muted-foreground">Managing SparkLux Academic Registry & User Sessions.</p>
         </div>
         <div className="flex gap-3">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -296,15 +306,16 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
+        {STATS.map((stat, i) => (
           <Card key={i} className="bg-card border-border group hover:border-secondary transition-colors">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardDescription>{stat.label}</CardDescription>
+                <CardDescription className="text-xs uppercase tracking-wider font-bold">{stat.label}</CardDescription>
                 <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-2xl font-bold">{stat.value}</CardTitle>
+                {stat.label === "Online Now" && <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />}
               </div>
             </CardHeader>
           </Card>
@@ -316,7 +327,7 @@ export default function AdminDashboard() {
           <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <CardTitle className="font-headline">Manage Student Records</CardTitle>
-              <CardDescription>Records categorized by academic year</CardDescription>
+              <CardDescription>Monitor enrollment and active user status</CardDescription>
             </div>
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -344,10 +355,10 @@ export default function AdminDashboard() {
                     <Table>
                       <TableHeader className="bg-muted/30">
                         <TableRow>
+                          <TableHead>Status</TableHead>
                           <TableHead>Reg No</TableHead>
                           <TableHead>Name</TableHead>
                           <TableHead>Semester</TableHead>
-                          <TableHead>Status</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -355,22 +366,23 @@ export default function AdminDashboard() {
                         {list.length > 0 ? (
                           list.map((student) => (
                             <TableRow key={student.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <span className={`h-2 w-2 rounded-full ${student.isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-muted-foreground/30'}`} />
+                                  <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                                    {student.isOnline ? 'Online' : 'Offline'}
+                                  </span>
+                                </div>
+                              </TableCell>
                               <TableCell className="font-mono text-xs">{student.regNo}</TableCell>
                               <TableCell className="font-medium">{student.name}</TableCell>
                               <TableCell>{student.semester}</TableCell>
-                              <TableCell>
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                  student.status === 'Active' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
-                                }`}>
-                                  {student.status}
-                                </span>
-                              </TableCell>
                               <TableCell className="text-right flex justify-end gap-2">
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
                                   className="text-secondary"
-                                  title="Add Marks"
+                                  title="Manage Results"
                                   onClick={() => {
                                     setSelectedStudentForMarks(student);
                                     setIsMarksDialogOpen(true);
@@ -403,7 +415,7 @@ export default function AdminDashboard() {
                         ) : (
                           <TableRow>
                             <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                              No students found for this category.
+                              No students found.
                             </TableCell>
                           </TableRow>
                         )}
@@ -419,22 +431,23 @@ export default function AdminDashboard() {
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="font-headline flex items-center gap-2 text-lg">
-              <Bell className="h-5 w-5 text-secondary" />
-              Recent Activity
+              <Activity className="h-5 w-5 text-secondary" />
+              User Login Feed
             </CardTitle>
+            <CardDescription>Real-time access logs</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {[
-              { user: "Dr. Sarah Smith", action: "Published internal results", time: "2 hours ago" },
-              { user: "System", action: "Backup completed successfully", time: "5 hours ago" },
-              { user: "Admin", action: "Updated semester dates", time: "1 day ago" },
-            ].map((activity, i) => (
-              <div key={i} className="flex flex-col gap-1 border-l-2 border-primary/30 pl-4 py-1">
-                <span className="text-xs text-muted-foreground">{activity.time}</span>
-                <p className="text-sm font-medium">{activity.action}</p>
-                <span className="text-[10px] text-secondary font-bold uppercase">{activity.user}</span>
+            {RECENT_LOGINS.map((activity, i) => (
+              <div key={i} className="flex flex-col gap-1 border-l-2 border-primary/30 pl-4 py-1 relative">
+                <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-primary" />
+                <span className="text-[10px] text-muted-foreground">{activity.time}</span>
+                <p className="text-sm font-bold text-secondary-foreground">{activity.user}</p>
+                <span className="text-[10px] text-muted-foreground leading-tight">{activity.action}</span>
               </div>
             ))}
+            <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-secondary">
+              View All Logs
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -444,7 +457,7 @@ export default function AdminDashboard() {
         <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage Student Marks</DialogTitle>
-            <DialogDescription>Record academic results for {selectedStudentForMarks?.name}</DialogDescription>
+            <DialogDescription>Record results for {selectedStudentForMarks?.name}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveMarks} className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -497,7 +510,7 @@ export default function AdminDashboard() {
               
               <div className="space-y-3">
                 {marksData.subjects.map((subject, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-3 items-end bg-muted/20 p-3 rounded-lg border border-border relative group">
+                  <div key={index} className="grid grid-cols-12 gap-3 items-end bg-muted/20 p-3 rounded-lg border border-border relative">
                     <div className="col-span-3 space-y-1">
                       <Label className="text-[10px]">Code</Label>
                       <Input 
@@ -620,3 +633,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

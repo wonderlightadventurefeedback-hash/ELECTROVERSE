@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, use } from "react";
 import { 
   Card, 
   CardContent, 
@@ -52,23 +51,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFirestore, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
 
 const INITIAL_STUDENTS = [
-  { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active", isOnline: true },
-  { id: "2", regNo: "SPARK2024-002", name: "Student User 2", semester: "3rd Semester", status: "Active", isOnline: false },
-  { id: "3", regNo: "SPARK2024-003", name: "Student User 3", semester: "4th Semester", status: "Active", isOnline: true },
-  { id: "4", regNo: "SPARK2024-004", name: "Student User 4", semester: "1st Semester", status: "Active", isOnline: false },
-  { id: "5", regNo: "SPARK2024-005", name: "Student User 5", semester: "6th Semester", status: "Active", isOnline: false },
-  { id: "6", regNo: "SPARK2024-006", name: "Student User 6", semester: "8th Semester", status: "Active", isOnline: true },
-  { id: "7", regNo: "SPARK2024-007", name: "Student User 7", semester: "5th Semester", status: "Active", isOnline: false },
-  { id: "8", regNo: "SPARK2024-008", name: "Student User 8", semester: "7th Semester", status: "Active", isOnline: false },
+  { id: "1", regNo: "SPARK2024-001", name: "Student User 1", semester: "2nd Semester", status: "Active", isOnline: true, cgpa: 0, attendancePercentage: 0 },
+  { id: "2", regNo: "SPARK2024-002", name: "Student User 2", semester: "3rd Semester", status: "Active", isOnline: false, cgpa: 0, attendancePercentage: 0 },
 ];
 
 const TAB_OPTIONS = ["All", "Online", "1st Year", "2nd Year", "3rd Year", "4th Year"];
 
 export default function AdminDashboard(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  // Explicitly unwrap Next.js 15 dynamic APIs
   use(props.params);
   use(props.searchParams);
 
@@ -92,7 +84,6 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
     examType: "semester",
     subjects: [
       { code: "EE301", name: "Electrical Circuits", marks: "", grade: "A" },
-      { code: "EE302", name: "Microprocessors", marks: "", grade: "B" },
     ]
   });
 
@@ -108,9 +99,6 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
   const RECENT_LOGINS = [
     { user: "Student User 1", type: "student", action: "Logged in from Chrome / Windows", time: "Just now" },
     { user: "Prof. Vikram Das", type: "teacher", action: "Accessed Gradebook Portal", time: "5 mins ago" },
-    { user: "Student User 3", type: "student", action: "Logged in from Safari / iOS", time: "12 mins ago" },
-    { user: "Student User 6", type: "student", action: "Logged in from Mobile App", time: "45 mins ago" },
-    { user: "Dr. Sarah Smith", type: "teacher", action: "Accessed Admin Panel", time: "2 hours ago" },
   ];
 
   const getYearFromSemester = (sem: string) => {
@@ -137,19 +125,6 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
     }
   };
 
-  const addSubjectRow = () => {
-    setMarksData({
-      ...marksData,
-      subjects: [...marksData.subjects, { code: "", name: "", marks: "", grade: "A" }]
-    });
-  };
-
-  const removeSubjectRow = (index: number) => {
-    const newSubjects = [...marksData.subjects];
-    newSubjects.splice(index, 1);
-    setMarksData({ ...marksData, subjects: newSubjects });
-  };
-
   const updateSubjectField = (index: number, field: string, value: string) => {
     const newSubjects = [...marksData.subjects];
     (newSubjects[index] as any)[field] = value;
@@ -158,17 +133,9 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
 
   const handleSaveMarks = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !selectedStudentForMarks || !user) {
-      toast({
-        variant: "destructive",
-        title: "Configuration Error",
-        description: "Firestore or Authentication is not available.",
-      });
-      return;
-    }
+    if (!db || !selectedStudentForMarks || !user) return;
     
     setIsLoading(true);
-
     const marksPayload = {
       regNo: selectedStudentForMarks.regNo,
       studentName: selectedStudentForMarks.name,
@@ -182,68 +149,42 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
 
     addDoc(collection(db, "grades"), marksPayload)
       .then(() => {
-        toast({
-          title: "Marks Submitted",
-          description: `Results for ${selectedStudentForMarks.name} are now available for lookup.`,
-        });
+        toast({ title: "Marks Submitted", description: `Results for ${selectedStudentForMarks.name} recorded.` });
         setIsMarksDialogOpen(false);
       })
       .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: "grades",
-          operation: 'create',
-          requestResourceData: marksPayload,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({ path: "grades", operation: 'create', requestResourceData: marksPayload }));
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .finally(() => setIsLoading(false));
   };
 
   const handleSaveStudent = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!db || !editingStudent) return;
     setIsLoading(true);
     
-    setTimeout(() => {
-      setStudents(prev => prev.map(s => s.id === editingStudent.id ? editingStudent : s));
-      toast({
-        title: "Record Updated",
-        description: `Student ${editingStudent.name} has been updated successfully.`,
-      });
-      setIsLoading(false);
-      setIsEditDialogOpen(false);
-    }, 800);
-  };
+    // In a real app, the ID would be the student's actual UID.
+    // For this prototype, we update the StudentProfile in Firestore if possible.
+    const studentRef = doc(db, "users", editingStudent.id, "studentProfile", editingStudent.id);
+    const updateData = {
+      firstName: editingStudent.name.split(' ')[0] || "",
+      lastName: editingStudent.name.split(' ')[1] || "",
+      studentIdNumber: editingStudent.regNo,
+      semester: editingStudent.semester,
+      cgpa: parseFloat(editingStudent.cgpa) || 0,
+      attendancePercentage: parseFloat(editingStudent.attendancePercentage) || 0,
+    };
 
-  const handleAddStudent = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      const studentToAdd = {
-        ...newStudent,
-        id: (students.length + 1).toString(),
-        isOnline: false
-      };
-      setStudents(prev => [...prev, studentToAdd]);
-      toast({
-        title: "Student Enrolled",
-        description: `${newStudent.name} has been added to the database.`,
-      });
-      setIsLoading(false);
-      setIsAddDialogOpen(false);
-      setNewStudent({ name: "", regNo: "", semester: "1st Semester", status: "Active" });
-    }, 800);
-  };
-
-  const handleDeleteStudent = (id: string) => {
-    setStudents(prev => prev.filter(s => s.id !== id));
-    toast({
-      variant: "destructive",
-      title: "Record Deleted",
-      description: "The student record has been removed.",
-    });
+    setDoc(studentRef, updateData, { merge: true })
+      .then(() => {
+        setStudents(prev => prev.map(s => s.id === editingStudent.id ? editingStudent : s));
+        toast({ title: "Record Updated", description: `Academic stats for ${editingStudent.name} synced.` });
+        setIsEditDialogOpen(false);
+      })
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({ path: studentRef.path, operation: 'update', requestResourceData: updateData }));
+      })
+      .finally(() => setIsLoading(false));
   };
 
   return (
@@ -254,64 +195,6 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
           <p className="text-muted-foreground">Managing SparkLux Academic Registry & User Sessions.</p>
         </div>
         <div className="flex gap-3">
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2">
-                <UserPlus className="h-4 w-4" /> Add Student
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-card border-border">
-              <DialogHeader>
-                <DialogTitle>Enroll New Student</DialogTitle>
-                <DialogDescription>Add a new student record to the academic registry.</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleAddStudent} className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label>Registration Number</Label>
-                  <Input 
-                    placeholder="SPARK2024-XXX" 
-                    className="bg-background"
-                    value={newStudent.regNo}
-                    onChange={(e) => setNewStudent({...newStudent, regNo: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Full Name</Label>
-                  <Input 
-                    placeholder="Enter student's full name" 
-                    className="bg-background"
-                    value={newStudent.name}
-                    onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Semester</Label>
-                  <Select 
-                    value={newStudent.semester} 
-                    onValueChange={(val) => setNewStudent({...newStudent, semester: val})}
-                  >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({length: 8}, (_, i) => `${i+1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Semester`).map(sem => (
-                        <SelectItem key={sem} value={sem}>{sem}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <DialogFooter className="pt-4">
-                  <Button type="submit" className="gap-2" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    Confirm Enrollment
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-
           <Button variant="outline" className="border-secondary/30 text-secondary">
             <Settings className="h-4 w-4" />
           </Button>
@@ -326,325 +209,97 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
                 <CardDescription className="text-xs uppercase tracking-wider font-bold">{stat.label}</CardDescription>
                 <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-2xl font-bold">{stat.value}</CardTitle>
-                {(stat.label === "Online Now" || stat.label === "Faculty Members") && <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />}
-              </div>
+              <CardTitle className="text-2xl font-bold">{stat.value}</CardTitle>
             </CardHeader>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <Card className="lg:col-span-3 bg-card border-border shadow-sm">
-          <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="font-headline">Manage Student Records</CardTitle>
-              <CardDescription>Monitor enrollment and active user status</CardDescription>
-            </div>
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search students..." 
-                className="pl-9 h-9 bg-background"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="All" className="w-full">
-              <TabsList className="bg-muted/50 border border-border mb-6 flex flex-wrap h-auto p-1">
-                {TAB_OPTIONS.map(tab => (
-                  <TabsTrigger key={tab} value={tab} className="flex-1 py-2 gap-2">
-                    {tab}
-                    {tab === "Online" && <span className="text-[10px] bg-green-500 text-white px-1.5 rounded-full">{onlineCount}</span>}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {TAB_OPTIONS.map((tab) => {
-                const list = getStudentsForTab(tab);
-                return (
-                  <TabsContent key={tab} value={tab} className="mt-0">
-                    <div className="rounded-md border border-border overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-muted/30">
-                          <TableRow>
-                            <TableHead className="w-24">Status</TableHead>
-                            <TableHead>Reg No</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Semester</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {list.length > 0 ? (
-                            list.map((student) => (
-                              <TableRow key={student.id}>
-                                <TableCell>
-                                  <div className="flex items-center gap-2">
-                                    <span className={`h-2 w-2 rounded-full ${student.isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-muted-foreground/30'}`} />
-                                    <span className="text-[10px] font-bold uppercase text-muted-foreground">
-                                      {student.isOnline ? 'Active' : 'Offline'}
-                                    </span>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="font-mono text-xs">{student.regNo}</TableCell>
-                                <TableCell className="font-medium">{student.name}</TableCell>
-                                <TableCell>{student.semester}</TableCell>
-                                <TableCell className="text-right flex justify-end gap-2">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="text-secondary hover:bg-secondary/10"
-                                    title="Add/Manage Marks"
-                                    onClick={() => {
-                                      setSelectedStudentForMarks(student);
-                                      setIsMarksDialogOpen(true);
-                                    }}
-                                  >
-                                    <FileSpreadsheet className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="text-primary hover:bg-primary/10"
-                                    onClick={() => {
-                                      setEditingStudent(student);
-                                      setIsEditDialogOpen(true);
-                                    }}
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={() => handleDeleteStudent(student.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                                No {tab.toLowerCase()} records found.
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </TabsContent>
-                );
-              })}
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border shadow-sm">
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2 text-lg">
-              <Activity className="h-5 w-5 text-secondary" />
-              User Login Feed
-            </CardTitle>
-            <CardDescription>Real-time access logs</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {RECENT_LOGINS.map((activity, i) => (
-              <div key={i} className={`flex flex-col gap-1 border-l-2 ${activity.type === 'teacher' ? 'border-primary' : 'border-secondary'} pl-4 py-1 relative`}>
-                <div className={`absolute -left-[5px] top-1.5 h-2 w-2 rounded-full ${activity.type === 'teacher' ? 'bg-primary' : 'bg-secondary'}`} />
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-muted-foreground">{activity.time}</span>
-                  <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold ${activity.type === 'teacher' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
-                    {activity.type}
-                  </span>
-                </div>
-                <p className="text-sm font-bold text-secondary-foreground">{activity.user}</p>
-                <span className="text-[10px] text-muted-foreground leading-tight italic">{activity.action}</span>
-              </div>
-            ))}
-            <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-secondary">
-              View All Logs
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Manage Marks Dialog */}
-      <Dialog open={isMarksDialogOpen} onOpenChange={setIsMarksDialogOpen}>
-        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Store Student Results</DialogTitle>
-            <DialogDescription>Record semester or internal marks for {selectedStudentForMarks?.name} ({selectedStudentForMarks?.regNo})</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSaveMarks} className="space-y-6 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Academic Session</Label>
-                <Select 
-                  value={marksData.session} 
-                  onValueChange={(val) => setMarksData({...marksData, session: val})}
-                >
-                  <SelectTrigger className="bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2024-25">2024-25</SelectItem>
-                    <SelectItem value="2023-24">2023-24</SelectItem>
-                    <SelectItem value="2022-23">2022-23</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Exam Category</Label>
-                <Select 
-                  value={marksData.examType} 
-                  onValueChange={(val) => setMarksData({...marksData, examType: val})}
-                >
-                  <SelectTrigger className="bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="semester">Semester Results</SelectItem>
-                    <SelectItem value="internal">Internal Results</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-secondary font-bold uppercase tracking-widest text-xs">Subject Scores</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={addSubjectRow}
-                  className="h-8 gap-2 text-xs border-secondary/30 text-secondary"
-                >
-                  <Plus className="h-3 w-3" /> Add More Subjects
-                </Button>
-              </div>
-              
-              <div className="space-y-3">
-                {marksData.subjects.map((subject, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-3 items-end bg-muted/20 p-3 rounded-lg border border-border relative">
-                    <div className="col-span-3 space-y-1">
-                      <Label className="text-[10px]">Code</Label>
-                      <Input 
-                        value={subject.code} 
-                        onChange={(e) => updateSubjectField(index, 'code', e.target.value)}
-                        className="bg-background h-8 text-xs" 
-                        placeholder="EE301"
-                        required
-                      />
-                    </div>
-                    <div className="col-span-5 space-y-1">
-                      <Label className="text-[10px]">Subject</Label>
-                      <Input 
-                        value={subject.name} 
-                        onChange={(e) => updateSubjectField(index, 'name', e.target.value)}
-                        className="bg-background h-8 text-xs" 
-                        placeholder="Subject Name"
-                        required
-                      />
-                    </div>
-                    <div className="col-span-3 space-y-1">
-                      <Label className="text-[10px]">Marks (%)</Label>
-                      <Input 
-                        type="number" 
-                        placeholder="0-100" 
-                        className="bg-background h-8 text-xs"
-                        value={subject.marks}
-                        onChange={(e) => updateSubjectField(index, 'marks', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="col-span-1 flex justify-center pb-1">
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => removeSubjectRow(index)}
-                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                        disabled={marksData.subjects.length <= 1}
-                      >
-                        <X className="h-4 w-4" />
+      <Card className="bg-card border-border shadow-sm">
+        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <CardTitle className="font-headline">Manage Student Records</CardTitle>
+            <CardDescription>Update academic summary stats (CGPA, Attendance)</CardDescription>
+          </div>
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search students..." className="pl-9 h-9 bg-background" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border border-border overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead>Reg No</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Semester</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStudents.map((student) => (
+                  <TableRow key={student.id}>
+                    <TableCell className="font-mono text-xs">{student.regNo}</TableCell>
+                    <TableCell className="font-medium">{student.name}</TableCell>
+                    <TableCell>{student.semester}</TableCell>
+                    <TableCell className="text-right flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" className="text-primary" onClick={() => { setEditingStudent(student); setIsEditDialogOpen(true); }}>
+                        <Edit2 className="h-4 w-4" /> Manage Stats
                       </Button>
-                    </div>
-                  </div>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </div>
-            </div>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
-            <DialogFooter className="pt-4 border-t border-border">
-              <Button type="submit" className="w-full gap-2 accent-glow" disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Publish Results
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Student Dialog */}
+      {/* Edit Student / Manage Stats Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle>Edit Student Record</DialogTitle>
-            <DialogDescription>Modify enrollment details for {editingStudent?.regNo}</DialogDescription>
+            <DialogTitle>Update Academic Summary</DialogTitle>
+            <DialogDescription>Set current CGPA and Attendance for {editingStudent?.name}</DialogDescription>
           </DialogHeader>
           {editingStudent && (
             <form onSubmit={handleSaveStudent} className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Full Name</Label>
-                <Input 
-                  value={editingStudent.name} 
-                  onChange={(e) => setEditingStudent({...editingStudent, name: e.target.value})}
-                  className="bg-background"
-                />
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Semester</Label>
-                  <Select 
-                    value={editingStudent.semester} 
-                    onValueChange={(val) => setEditingStudent({...editingStudent, semester: val})}
-                  >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({length: 8}, (_, i) => `${i+1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Semester`).map(sem => (
-                        <SelectItem key={sem} value={sem}>{sem}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Current CGPA</Label>
+                  <Input 
+                    type="number" step="0.01" max="10"
+                    value={editingStudent.cgpa} 
+                    onChange={(e) => setEditingStudent({...editingStudent, cgpa: e.target.value})}
+                    className="bg-background"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Select 
-                    value={editingStudent.status} 
-                    onValueChange={(val) => setEditingStudent({...editingStudent, status: val})}
-                  >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Attendance (%)</Label>
+                  <Input 
+                    type="number" step="0.1" max="100"
+                    value={editingStudent.attendancePercentage} 
+                    onChange={(e) => setEditingStudent({...editingStudent, attendancePercentage: e.target.value})}
+                    className="bg-background"
+                  />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Semester</Label>
+                <Select value={editingStudent.semester} onValueChange={(val) => setEditingStudent({...editingStudent, semester: val})}>
+                  <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Array.from({length: 8}, (_, i) => `${i+1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Semester`).map(sem => (
+                      <SelectItem key={sem} value={sem}>{sem}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <DialogFooter className="pt-4">
-                <Button type="submit" className="gap-2" disabled={isLoading}>
+                <Button type="submit" className="w-full gap-2" disabled={isLoading}>
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  Save Changes
+                  Save Academic Stats
                 </Button>
               </DialogFooter>
             </form>

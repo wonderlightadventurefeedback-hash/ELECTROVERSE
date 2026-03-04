@@ -72,6 +72,7 @@ export function HeroCarousel() {
                   fill
                   className="object-cover"
                   priority={index === 0}
+                  sizes="100vw"
                   data-ai-hint={image.imageHint || "electrical engineering"}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/40 to-transparent flex items-center">

@@ -4,7 +4,7 @@
 import { useMemo, use, useState, useEffect } from "react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Maximize2, X } from "lucide-react";
+import { ArrowLeft, Loader2, Maximize2, X, Calendar } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
@@ -26,7 +26,7 @@ export default function GalleryPage({ params }: { params: Params }) {
   const unwrappedParams = use(params);
   
   const db = useFirestore();
-  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string; category: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string; category: string; date?: string } | null>(null);
 
   const galleryQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -49,11 +49,25 @@ export default function GalleryPage({ params }: { params: Params }) {
 
       galleryImages = specificGalleryItems.length > 0 ? specificGalleryItems : firestoreImages;
 
-      return galleryImages.map(img => ({
-        src: img.url,
-        alt: img.altText || img.description || "Gallery Image",
-        category: img.category?.replace("-", " ") || "Achievement"
-      }));
+      return galleryImages.map(img => {
+        let dateStr = "Recently";
+        if (img.uploadDate) {
+          try {
+            // Handle Firestore Timestamp or string
+            const d = img.uploadDate?.seconds ? new Date(img.uploadDate.seconds * 1000) : new Date(img.uploadDate);
+            dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          } catch (e) {
+            dateStr = "Academic Session";
+          }
+        }
+
+        return {
+          src: img.url,
+          alt: img.altText || img.description || "Gallery Image",
+          category: img.category?.replace("-", " ") || "Achievement",
+          date: dateStr
+        };
+      });
     }
 
     return PlaceHolderImages.filter(img => 
@@ -61,7 +75,8 @@ export default function GalleryPage({ params }: { params: Params }) {
     ).map(img => ({
       src: img.imageUrl,
       alt: img.description,
-      category: "Achievement"
+      category: "Achievement",
+      date: "Academic Milestone"
     }));
   }, [firestoreImages, isLoading]);
 
@@ -79,7 +94,7 @@ export default function GalleryPage({ params }: { params: Params }) {
           <span className="text-secondary font-bold tracking-widest uppercase text-xs">Visual Journey</span>
           <h1 className="font-headline text-5xl font-bold text-glow">Achievement Gallery</h1>
           <p className="text-muted-foreground text-lg">
-            Explore our departmental milestones, cutting-edge facilities, and student innovations. A visual record of excellence at ElectroVerse.
+            Explore our departmental milestones and cutting-edge facilities. Capturing the spirit of innovation at ELECTROVERSE.
           </p>
         </div>
       </div>
@@ -106,9 +121,15 @@ export default function GalleryPage({ params }: { params: Params }) {
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                    <span className="text-[10px] uppercase font-bold text-secondary tracking-widest mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                      {img.category}
-                    </span>
+                    <div className="flex items-center gap-2 mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <span className="text-[10px] uppercase font-bold text-secondary tracking-widest">
+                        {img.category}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">•</span>
+                      <span className="text-[10px] font-medium text-white/70">
+                        {img.date}
+                      </span>
+                    </div>
                     <p className="text-sm font-bold text-white line-clamp-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
                       {img.alt}
                     </p>
@@ -133,9 +154,15 @@ export default function GalleryPage({ params }: { params: Params }) {
                 </div>
                 <div className="p-8 space-y-2 bg-card/50">
                   <DialogHeader>
-                    <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-1 block">
-                      {img.category}
-                    </span>
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-xs font-bold text-secondary uppercase tracking-widest">
+                        {img.category}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {img.date}
+                      </div>
+                    </div>
                     <DialogTitle className="text-xl font-bold">{img.alt}</DialogTitle>
                   </DialogHeader>
                 </div>

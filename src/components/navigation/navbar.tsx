@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, Menu, UserCircle, Search, FileText } from "lucide-react";
+import { Zap, Menu, UserCircle, Search, FileText, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,6 +14,10 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 import GooeyNav from "@/components/ui/gooey-nav";
+import { useUser, useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
@@ -26,6 +30,28 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsOpen(false);
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully signed out.",
+      });
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Logout Failed",
+        description: error.message,
+      });
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
@@ -44,22 +70,34 @@ export function Navbar() {
           />
           <div className="h-6 w-px bg-border mx-2" />
           <div className="flex items-center gap-2">
-            <Link href="/auth/login">
-              <Button variant="ghost" className="hover:bg-primary/20 text-xs h-9">
-                Sign In
+            {user ? (
+              <Button 
+                variant="ghost" 
+                onClick={handleLogout}
+                className="hover:bg-destructive/10 text-destructive hover:text-destructive text-xs h-9 gap-2"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Logout
               </Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 accent-glow text-xs h-9">
-                Sign Up
-              </Button>
-            </Link>
+            ) : (
+              <>
+                <Link href="/auth/login">
+                  <Button variant="ghost" className="hover:bg-primary/20 text-xs h-9">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/auth/signup">
+                  <Button size="sm" className="bg-primary hover:bg-primary/90 accent-glow text-xs h-9">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
         {/* Mobile Nav */}
         <div className="lg:hidden flex items-center gap-4">
-          <Link href="/auth/login">
+          <Link href={user ? "/dashboard/student" : "/auth/login"}>
             <UserCircle className="h-6 w-6 text-secondary" />
           </Link>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -105,9 +143,18 @@ export function Navbar() {
                 <hr className="border-border" />
                 
                 <div className="space-y-4">
-                  <Link href="/auth/login" onClick={() => setIsOpen(false)} className="block">
-                    <Button className="w-full bg-primary accent-glow">Sign In / Sign Up</Button>
-                  </Link>
+                  {user ? (
+                    <Button 
+                      onClick={handleLogout}
+                      className="w-full bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-white transition-all gap-2 h-12"
+                    >
+                      <LogOut className="h-5 w-5" /> Logout from Portal
+                    </Button>
+                  ) : (
+                    <Link href="/auth/login" onClick={() => setIsOpen(false)} className="block">
+                      <Button className="w-full bg-primary accent-glow h-12">Sign In / Sign Up</Button>
+                    </Link>
+                  )}
                   
                   <div className="grid grid-cols-1 gap-3">
                     <Link href="/results" onClick={() => setIsOpen(false)} className="block">

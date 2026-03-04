@@ -43,9 +43,13 @@ import { doc, setDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
-export default function StudentDashboard(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  use(props.params);
-  use(props.searchParams);
+type Params = Promise<{ [key: string]: string | string[] | undefined }>;
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function StudentDashboard({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+  // Explicitly unwrap params and searchParams to avoid enumeration errors in Next.js 15
+  use(params);
+  use(searchParams);
 
   const { user, isUserLoading: isAuthLoading } = useUser();
   const db = useFirestore();

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, use } from "react";
@@ -17,9 +18,13 @@ import { useFirestore } from "@/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-export default function ResultsPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  use(props.params);
-  use(props.searchParams);
+type Params = Promise<{ [key: string]: string | string[] | undefined }>;
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function ResultsPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+  // Explicitly unwrap params and searchParams to avoid enumeration errors in Next.js 15
+  use(params);
+  use(searchParams);
 
   const db = useFirestore();
   const [session, setSession] = useState("");

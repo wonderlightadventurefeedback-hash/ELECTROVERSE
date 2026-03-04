@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, use, useMemo } from "react";
@@ -60,9 +61,13 @@ import { collection, serverTimestamp, doc, collectionGroup, query, where, getDoc
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function AdminDashboard(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  use(props.params);
-  use(props.searchParams);
+type Params = Promise<{ [key: string]: string | string[] | undefined }>;
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function AdminDashboard({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+  // Explicitly unwrap params and searchParams to avoid enumeration errors in Next.js 15
+  use(params);
+  use(searchParams);
 
   const db = useFirestore();
   const { user } = useUser();
@@ -104,8 +109,6 @@ export default function AdminDashboard(props: { params: Promise<any>; searchPara
     return collection(db, "images");
   }, [db]);
   const { data: images, isLoading: isImagesLoading } = useCollection(imagesQuery);
-
-  const onlineCount = students?.filter(s => s.isOnline).length || 0;
 
   const STATS = [
     { label: "Total Students", value: students?.length.toString() || "0", icon: Users, color: "text-secondary" },

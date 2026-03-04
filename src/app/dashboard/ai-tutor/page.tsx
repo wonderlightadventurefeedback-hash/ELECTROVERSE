@@ -41,7 +41,7 @@ export default function AITutorPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary/10 border border-secondary/20 rounded-full text-secondary text-xs font-bold uppercase tracking-widest">
           <BrainCircuit className="h-3 w-3" /> AI Academic Assistant
         </div>
-        <h1 className="font-headline text-5xl font-bold">SmartLux AI Tutor</h1>
+        <h1 className="font-headline text-5xl font-bold">ElectroVerse AI Tutor</h1>
         <p className="text-muted-foreground text-lg">
           Master complex electrical engineering concepts with our advanced AI assistant. Instant explanations, formulas, and study guides.
         </p>
@@ -162,7 +162,7 @@ export default function AITutorPage() {
       {isLoading && (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <Loader2 className="h-12 w-12 text-secondary animate-spin" />
-          <p className="text-muted-foreground animate-pulse font-medium">SparkLux AI is generating your comprehensive tutor guide...</p>
+          <p className="text-muted-foreground animate-pulse font-medium">ElectroVerse AI is generating your comprehensive tutor guide...</p>
         </div>
       )}
 

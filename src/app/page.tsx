@@ -77,7 +77,7 @@ export default function Home() {
               <span className="text-secondary">Electrical Engineering</span>
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              At SparkLux Academics, we don't just teach circuits; we inspire visionaries. Our curriculum is designed to challenge boundaries and foster innovation in the ever-evolving field of electrical technology.
+              At ElectroVerse Academics, we don't just teach circuits; we inspire visionaries. Our curriculum is designed to challenge boundaries and foster innovation in the ever-evolving field of electrical technology.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href="/about">

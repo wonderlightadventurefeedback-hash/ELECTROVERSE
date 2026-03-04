@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'SparkLux Academics | Electrical Engineering Excellence',
+  title: 'ElectroVerse Academics | Electrical Engineering Excellence',
   description: 'The premier destination for BTech Electrical Engineering education and research.',
 };
 

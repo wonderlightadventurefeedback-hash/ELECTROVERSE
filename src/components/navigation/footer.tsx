@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -18,7 +19,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Zap className="h-6 w-6 text-secondary" />
-              <span className="font-headline text-xl font-bold">SPARKLUX</span>
+              <span className="font-headline text-xl font-bold">ELECTROVERSE</span>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Empowering the next generation of electrical engineers with world-class facilities and innovative pedagogy.
@@ -69,13 +70,13 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-secondary" />
-                <span>info@sparklux.edu</span>
+                <span>info@electroverse.edu</span>
               </li>
             </ul>
           </div>
         </div>
         <div className="border-t border-border mt-16 pt-8 text-center text-xs text-muted-foreground">
-          &copy; {year || "..."} SparkLux Academics. All rights reserved.
+          &copy; {year || "..."} ElectroVerse Academics. All rights reserved.
         </div>
       </div>
     </footer>

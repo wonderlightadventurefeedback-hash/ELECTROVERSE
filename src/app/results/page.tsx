@@ -145,7 +145,7 @@ export default function ResultsPage({ params, searchParams }: { params: Params; 
                     Registration No.
                   </label>
                   <Input
-                    placeholder="Enter Reg No (e.g. SPARK2024-001)"
+                    placeholder="Enter Reg No (e.g. ELECTRO2024-001)"
                     value={regNo}
                     onChange={(e) => setRegNo(e.target.value)}
                     className="bg-transparent border-slate-300 dark:border-border h-12 placeholder:text-slate-400"
@@ -188,7 +188,7 @@ export default function ResultsPage({ params, searchParams }: { params: Params; 
                       <GraduationCap className="h-8 w-8 text-secondary" />
                       {foundResult.studentName}
                     </CardTitle>
-                    <p className="text-muted-foreground font-medium italic">SparkLux Academic Portal - Student Record</p>
+                    <p className="text-muted-foreground font-medium italic">ElectroVerse Academic Portal - Student Record</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     <div className="px-4 py-2 bg-background border border-border rounded-lg flex flex-col items-center min-w-[120px]">
@@ -242,7 +242,7 @@ export default function ResultsPage({ params, searchParams }: { params: Params; 
                   </TableBody>
                 </Table>
                 <div className="p-8 bg-muted/10 flex justify-between items-center text-xs text-muted-foreground italic border-t border-border/30">
-                  <p>Digitally signed by SparkLux Academics Administration.</p>
+                  <p>Digitally signed by ElectroVerse Academics Administration.</p>
                   <p>Recorded Date: {foundResult.recordedDate ? new Date(foundResult.recordedDate.seconds * 1000).toLocaleDateString() : 'N/A'}</p>
                 </div>
               </CardContent>

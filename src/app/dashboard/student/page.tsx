@@ -144,7 +144,7 @@ export default function StudentDashboard({ params, searchParams }: { params: Par
                 </h2>
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Registration No</span>
-                  <span className="text-secondary font-mono font-bold text-sm tracking-tight">{profile?.studentIdNumber || "SPARK-UNASSIGNED"}</span>
+                  <span className="text-secondary font-mono font-bold text-sm tracking-tight">{profile?.studentIdNumber || "ELECTRO-UNASSIGNED"}</span>
                 </div>
               </div>
               <div className="space-y-3 text-sm">

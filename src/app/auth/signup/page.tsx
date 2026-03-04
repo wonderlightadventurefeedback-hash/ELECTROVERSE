@@ -45,7 +45,7 @@ export default function SignupPage() {
       
       toast({
         title: "Account Created",
-        description: `Welcome to SparkLux! Your ${formData.role} account is ready.`,
+        description: `Welcome to ElectroVerse! Your ${formData.role} account is ready.`,
       });
       router.push("/auth/login");
     } catch (error: any) {
@@ -68,7 +68,7 @@ export default function SignupPage() {
               <Zap className="h-8 w-8 text-secondary" />
             </div>
           </div>
-          <CardTitle className="font-headline text-3xl font-bold">Join SparkLux</CardTitle>
+          <CardTitle className="font-headline text-3xl font-bold">Join ElectroVerse</CardTitle>
           <CardDescription>Create your academic account today</CardDescription>
         </CardHeader>
         <CardContent>
@@ -132,7 +132,7 @@ export default function SignupPage() {
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
                   type="email" 
-                  placeholder="name@sparklux.edu" 
+                  placeholder="name@electroverse.edu" 
                   className="pl-10 bg-background"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}

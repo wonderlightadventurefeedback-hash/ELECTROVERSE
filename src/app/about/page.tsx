@@ -14,7 +14,7 @@ export default function AboutPage() {
       <section className="max-w-4xl mx-auto text-center space-y-6">
         <h1 className="font-headline text-5xl md:text-6xl font-bold">Pioneering the Future of Energy</h1>
         <p className="text-muted-foreground text-xl leading-relaxed">
-          The SparkLux Electrical Engineering Department is a global leader in power systems research and technical education. Founded with a vision to revolutionize sustainable infrastructure, we bridge the gap between theoretical excellence and industrial application.
+          The ElectroVerse Electrical Engineering Department is a global leader in power systems research and technical education. Founded with a vision to revolutionize sustainable infrastructure, we bridge the gap between theoretical excellence and industrial application.
         </p>
       </section>
 
@@ -38,7 +38,7 @@ export default function AboutPage() {
           <div className="space-y-4">
             <div className="flex gap-4 p-4 bg-muted/30 rounded-xl border border-border">
               <GraduationCap className="h-6 w-6 text-secondary shrink-0" />
-              <p className="text-sm text-muted-foreground">Established in 1995, SparkLux has consistently ranked in the top 1% of engineering institutes nationwide.</p>
+              <p className="text-sm text-muted-foreground">Established in 1995, ElectroVerse has consistently ranked in the top 1% of engineering institutes nationwide.</p>
             </div>
             <div className="flex gap-4 p-4 bg-muted/30 rounded-xl border border-border">
               <Microscope className="h-6 w-6 text-secondary shrink-0" />

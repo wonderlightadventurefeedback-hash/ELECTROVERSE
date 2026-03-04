@@ -63,7 +63,7 @@ export default function LoginPage() {
             </div>
           </div>
           <CardTitle className="font-headline text-3xl font-bold">Welcome Back</CardTitle>
-          <CardDescription>Enter your credentials to access your SparkLux portal</CardDescription>
+          <CardDescription>Enter your credentials to access your ElectroVerse portal</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
@@ -113,7 +113,7 @@ export default function LoginPage() {
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
                   type="email" 
-                  placeholder="name@sparklux.edu" 
+                  placeholder="name@electroverse.edu" 
                   className="pl-10 bg-background"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

@@ -59,7 +59,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2 group">
           <Zap className="h-8 w-8 text-secondary group-hover:scale-110 transition-transform" />
           <span className="font-headline text-2xl font-bold tracking-tight text-glow">
-            SPARK<span className="text-secondary">LUX</span>
+            ELECTRO<span className="text-secondary">VERSE</span>
           </span>
         </Link>
 
@@ -109,7 +109,7 @@ export function Navbar() {
             <SheetContent side="right" className="bg-background border-l-border">
               <SheetHeader>
                 <SheetTitle className="font-headline text-2xl text-left">
-                  SPARKLUX
+                  ELECTROVERSE
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-6 mt-12">

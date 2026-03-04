@@ -31,7 +31,7 @@ const NEWS_ITEMS = [
     date: "Sep 28, 2023",
     category: "Infrastructure",
     desc: "The department welcomes a new suite of KUKA industrial robots for the automation research track.",
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800"
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595f?auto=format&fit=crop&q=80&w=800"
   }
 ];
 
@@ -40,7 +40,7 @@ export default function NewsPage() {
     <div className="container mx-auto px-4 py-16 space-y-12">
       <div className="max-w-3xl space-y-4">
         <h1 className="font-headline text-5xl font-bold">News & Announcements</h1>
-        <p className="text-muted-foreground text-lg italic">Stay updated with the latest events and academic milestones at SparkLux.</p>
+        <p className="text-muted-foreground text-lg italic">Stay updated with the latest events and academic milestones at ElectroVerse.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

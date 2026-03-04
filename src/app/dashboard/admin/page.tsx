@@ -215,7 +215,7 @@ export default function AdminDashboard({ params, searchParams }: { params: Param
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="font-headline text-4xl font-bold text-glow">Admin Control Panel</h1>
-          <p className="text-muted-foreground">Managing SparkLux Academic Registry & Media Library.</p>
+          <p className="text-muted-foreground">Managing ElectroVerse Academic Registry & Media Library.</p>
         </div>
       </div>
 

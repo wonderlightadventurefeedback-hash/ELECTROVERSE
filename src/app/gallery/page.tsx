@@ -15,6 +15,8 @@ import {
   DialogContent,
   DialogTrigger,
   DialogClose,
+  DialogTitle,
+  DialogHeader,
 } from "@/components/ui/dialog";
 
 type Params = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -24,7 +26,7 @@ export default function GalleryPage({ params }: { params: Params }) {
   use(params);
   
   const db = useFirestore();
-  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string; category: string } | null>(null);
 
   const galleryQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -38,16 +40,13 @@ export default function GalleryPage({ params }: { params: Params }) {
     
     let galleryImages: any[] = [];
 
-    // If we have images in Firestore, filter for gallery-related ones
     if (firestoreImages && firestoreImages.length > 0) {
-      // Prioritize gallery categories
       const specificGalleryItems = firestoreImages.filter(img => 
         img.category === 'gallery-achievement' || 
         img.category === 'gallery-event' || 
         img.category === 'student-project'
       );
 
-      // If no specific gallery items, use all available images
       galleryImages = specificGalleryItems.length > 0 ? specificGalleryItems : firestoreImages;
 
       return galleryImages.map(img => ({
@@ -57,7 +56,6 @@ export default function GalleryPage({ params }: { params: Params }) {
       }));
     }
 
-    // Fallback to static placeholders if no Firestore data
     return PlaceHolderImages.filter(img => 
       img.id.startsWith('gallery') || img.id.startsWith('hero')
     ).map(img => ({
@@ -134,10 +132,12 @@ export default function GalleryPage({ params }: { params: Params }) {
                   </DialogClose>
                 </div>
                 <div className="p-8 space-y-2 bg-card/50">
-                  <span className="text-xs font-bold text-secondary uppercase tracking-widest">
-                    {img.category}
-                  </span>
-                  <h3 className="text-xl font-bold">{img.alt}</h3>
+                  <DialogHeader>
+                    <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-1 block">
+                      {img.category}
+                    </span>
+                    <DialogTitle className="text-xl font-bold">{img.alt}</DialogTitle>
+                  </DialogHeader>
                 </div>
               </DialogContent>
             </Dialog>

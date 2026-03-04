@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useMemo, use, useState, useEffect } from "react";
+import { useMemo, use, useState } from "react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Maximize2, X, Calendar } from "lucide-react";
+import { ArrowLeft, Loader2, Maximize2, X, Calendar, Filter } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
@@ -18,15 +18,24 @@ import {
   DialogTitle,
   DialogHeader,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type Params = Promise<{ [key: string]: string | string[] | undefined }>;
 
+const CATEGORIES = [
+  { id: "all", label: "All Assets" },
+  { id: "gallery-achievement", label: "Achievements" },
+  { id: "student-project", label: "Student Projects" },
+  { id: "gallery-event", label: "Campus Events" },
+];
+
 export default function GalleryPage({ params }: { params: Params }) {
   // Explicitly unwrap params to comply with Next.js 15
-  const unwrappedParams = use(params);
+  use(params);
   
   const db = useFirestore();
-  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string; category: string; date?: string } | null>(null);
+  const [activeFilter, setActiveFilter] = useState("all");
 
   const galleryQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -38,22 +47,13 @@ export default function GalleryPage({ params }: { params: Params }) {
   const displayImages = useMemo(() => {
     if (isLoading) return [];
     
-    let galleryImages: any[] = [];
+    let baseImages: any[] = [];
 
     if (firestoreImages && firestoreImages.length > 0) {
-      const specificGalleryItems = firestoreImages.filter(img => 
-        img.category === 'gallery-achievement' || 
-        img.category === 'gallery-event' || 
-        img.category === 'student-project'
-      );
-
-      galleryImages = specificGalleryItems.length > 0 ? specificGalleryItems : firestoreImages;
-
-      return galleryImages.map(img => {
+      baseImages = firestoreImages.map(img => {
         let dateStr = "Recently";
         if (img.uploadDate) {
           try {
-            // Handle Firestore Timestamp or string
             const d = img.uploadDate?.seconds ? new Date(img.uploadDate.seconds * 1000) : new Date(img.uploadDate);
             dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
           } catch (e) {
@@ -62,23 +62,35 @@ export default function GalleryPage({ params }: { params: Params }) {
         }
 
         return {
+          id: img.id,
           src: img.url,
           alt: img.altText || img.description || "Gallery Image",
-          category: img.category?.replace("-", " ") || "Achievement",
+          category: img.category || "gallery-achievement",
           date: dateStr
         };
       });
+    } else {
+      baseImages = PlaceHolderImages.filter(img => 
+        img.id.startsWith('gallery') || img.id.startsWith('hero')
+      ).map(img => ({
+        id: img.id,
+        src: img.imageUrl,
+        alt: img.description,
+        category: img.id.includes('hero') ? "gallery-event" : "gallery-achievement",
+        date: "Academic Milestone"
+      }));
     }
 
-    return PlaceHolderImages.filter(img => 
-      img.id.startsWith('gallery') || img.id.startsWith('hero')
-    ).map(img => ({
-      src: img.imageUrl,
-      alt: img.description,
-      category: "Achievement",
-      date: "Academic Milestone"
-    }));
-  }, [firestoreImages, isLoading]);
+    if (activeFilter !== "all") {
+      return baseImages.filter(img => img.category === activeFilter);
+    }
+
+    return baseImages;
+  }, [firestoreImages, isLoading, activeFilter]);
+
+  const formatCategory = (cat: string) => {
+    return cat.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-12 min-h-screen">
@@ -90,12 +102,31 @@ export default function GalleryPage({ params }: { params: Params }) {
           </Button>
         </Link>
         
-        <div className="max-w-3xl space-y-4">
-          <span className="text-secondary font-bold tracking-widest uppercase text-xs">Visual Journey</span>
-          <h1 className="font-headline text-5xl font-bold text-glow">Achievement Gallery</h1>
-          <p className="text-muted-foreground text-lg">
-            Explore our departmental milestones and cutting-edge facilities. Capturing the spirit of innovation at ELECTROVERSE.
-          </p>
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+          <div className="max-w-3xl space-y-4">
+            <span className="text-secondary font-bold tracking-widest uppercase text-xs">Visual Journey</span>
+            <h1 className="font-headline text-5xl font-bold text-glow">Achievement Gallery</h1>
+            <p className="text-muted-foreground text-lg">
+              Explore our departmental milestones and cutting-edge facilities. Capturing the spirit of innovation at ELECTROVERSE.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 bg-muted/20 p-1 rounded-xl border border-border w-fit">
+            {CATEGORIES.map((cat) => (
+              <Button
+                key={cat.id}
+                variant={activeFilter === cat.id ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setActiveFilter(cat.id)}
+                className={cn(
+                  "rounded-lg transition-all text-xs font-bold uppercase tracking-tight",
+                  activeFilter === cat.id ? "accent-glow" : "text-muted-foreground"
+                )}
+              >
+                {cat.label}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -106,12 +137,11 @@ export default function GalleryPage({ params }: { params: Params }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {displayImages.map((img, index) => (
-            <Dialog key={index}>
+          {displayImages.map((img) => (
+            <Dialog key={img.id}>
               <DialogTrigger asChild>
                 <Card 
                   className="group relative aspect-square overflow-hidden border-border bg-card cursor-pointer hover:border-secondary/50 transition-all duration-500"
-                  onClick={() => setSelectedImage(img)}
                 >
                   <Image
                     src={img.src}
@@ -122,9 +152,9 @@ export default function GalleryPage({ params }: { params: Params }) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
                     <div className="flex items-center gap-2 mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                      <span className="text-[10px] uppercase font-bold text-secondary tracking-widest">
-                        {img.category}
-                      </span>
+                      <Badge variant="secondary" className="bg-secondary/20 text-secondary border-none text-[10px] uppercase font-bold tracking-widest">
+                        {formatCategory(img.category)}
+                      </Badge>
                       <span className="text-[10px] text-muted-foreground">•</span>
                       <span className="text-[10px] font-medium text-white/70">
                         {img.date}
@@ -155,9 +185,9 @@ export default function GalleryPage({ params }: { params: Params }) {
                 <div className="p-8 space-y-2 bg-card/50">
                   <DialogHeader>
                     <div className="flex items-center gap-3 mb-1">
-                      <span className="text-xs font-bold text-secondary uppercase tracking-widest">
-                        {img.category}
-                      </span>
+                      <Badge variant="secondary" className="bg-secondary/20 text-secondary border-none text-xs font-bold uppercase tracking-widest">
+                        {formatCategory(img.category)}
+                      </Badge>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         {img.date}
@@ -173,8 +203,16 @@ export default function GalleryPage({ params }: { params: Params }) {
       )}
 
       {!isLoading && displayImages.length === 0 && (
-        <div className="py-40 text-center border-2 border-dashed border-border rounded-[2rem]">
-          <p className="text-muted-foreground">No gallery items found at this time.</p>
+        <div className="py-40 text-center border-2 border-dashed border-border rounded-[2rem] space-y-4">
+          <div className="flex justify-center">
+            <Filter className="h-12 w-12 text-muted-foreground/30" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-muted-foreground font-medium">No items found in this category.</p>
+            <Button variant="link" onClick={() => setActiveFilter("all")} className="text-secondary font-bold">
+              View all images
+            </Button>
+          </div>
         </div>
       )}
     </div>

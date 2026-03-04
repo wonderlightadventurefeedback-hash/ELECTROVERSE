@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Zap, User, Mail, Lock, ShieldCheck, GraduationCap, Briefcase, ShieldAlert, Loader2 } from "lucide-react";
+import { User, Mail, Lock, ShieldCheck, GraduationCap, Briefcase, ShieldAlert, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import Image from "next/image";
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -64,8 +65,15 @@ export default function SignupPage() {
       <Card className="w-full max-w-lg bg-card border-border shadow-2xl">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary/10 rounded-2xl">
-              <Zap className="h-8 w-8 text-secondary" />
+            <div className="p-3 bg-primary/10 rounded-2xl relative h-16 w-16 flex items-center justify-center">
+              <div className="relative h-10 w-10">
+                <Image 
+                  src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+                  alt="ElectroVerse Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
             </div>
           </div>
           <CardTitle className="font-headline text-3xl font-bold">Join ElectroVerse</CardTitle>

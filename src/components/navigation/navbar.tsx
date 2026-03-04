@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, Menu, UserCircle, Search, FileText, LogOut } from "lucide-react";
+import { Menu, UserCircle, Search, FileText, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,7 @@ import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
@@ -63,7 +64,14 @@ export function Navbar() {
       <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Zap className="h-8 w-8 text-secondary" />
+            <div className="relative h-10 w-10">
+              <Image 
+                src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+                alt="ElectroVerse Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
             <span className="font-headline text-2xl font-bold tracking-tight text-glow">
               ELECTRO<span className="text-secondary">VERSE</span>
             </span>
@@ -77,7 +85,14 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <Zap className="h-8 w-8 text-secondary group-hover:scale-110 transition-transform" />
+          <div className="relative h-10 w-10 group-hover:scale-110 transition-transform">
+            <Image 
+              src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+              alt="ElectroVerse Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
           <span className="font-headline text-2xl font-bold tracking-tight text-glow">
             ELECTRO<span className="text-secondary">VERSE</span>
           </span>
@@ -128,7 +143,15 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="right" className="bg-background border-l-border">
               <SheetHeader>
-                <SheetTitle className="font-headline text-2xl text-left">
+                <SheetTitle className="font-headline text-2xl text-left flex items-center gap-2">
+                  <div className="relative h-8 w-8">
+                    <Image 
+                      src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+                      alt="ElectroVerse Logo"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
                   ELECTROVERSE
                 </SheetTitle>
               </SheetHeader>

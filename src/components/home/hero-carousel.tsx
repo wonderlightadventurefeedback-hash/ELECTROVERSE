@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -12,24 +11,41 @@ import {
 } from "@/components/ui/carousel";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { cn } from "@/lib/utils";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 
 export function HeroCarousel() {
   const [api, setApi] = React.useState<CarouselApi>();
   const [current, setCurrent] = React.useState(0);
+  const db = useFirestore();
 
   const plugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  const heroImages = PlaceHolderImages.filter(img => img.id.startsWith('hero'));
+  const heroQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, "images"), where("category", "==", "homepage-carousel"));
+  }, [db]);
+
+  const { data: firestoreImages, isLoading } = useCollection(heroQuery);
+
+  // Fallback to static placeholders if no images found in Firestore
+  const displayImages = React.useMemo(() => {
+    if (!firestoreImages || firestoreImages.length === 0) {
+      return PlaceHolderImages.filter(img => img.id.startsWith('hero')).map(img => ({
+        url: img.imageUrl,
+        description: img.description,
+        altText: img.description,
+        imageHint: img.imageHint
+      }));
+    }
+    return firestoreImages;
+  }, [firestoreImages]);
 
   React.useEffect(() => {
-    if (!api) {
-      return;
-    }
-
+    if (!api) return;
     setCurrent(api.selectedScrollSnap());
-
     api.on("select", () => {
       setCurrent(api.selectedScrollSnap());
     });
@@ -47,16 +63,16 @@ export function HeroCarousel() {
         }}
       >
         <CarouselContent className="-ml-0 h-full">
-          {heroImages.map((image, index) => (
+          {displayImages.map((image, index) => (
             <CarouselItem key={index} className="pl-0 h-full relative">
               <div className="relative w-full h-full">
                 <Image
-                  src={image.imageUrl}
-                  alt={image.description}
+                  src={image.url}
+                  alt={image.altText || image.description}
                   fill
                   className="object-cover"
                   priority={index === 0}
-                  data-ai-hint={image.imageHint}
+                  data-ai-hint={image.imageHint || "electrical engineering"}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/40 to-transparent flex items-center">
                   <div className="container mx-auto px-4 md:px-8 max-w-4xl space-y-6">
@@ -78,7 +94,7 @@ export function HeroCarousel() {
         </CarouselContent>
       </Carousel>
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {heroImages.map((_, i) => (
+        {displayImages.map((_, i) => (
           <button
             key={i}
             onClick={() => api?.scrollTo(i)}

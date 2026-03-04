@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -85,7 +86,7 @@ export function HeroCarousel() {
                       Empowering <span className="text-primary-foreground">Futures</span>
                     </h1>
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-                      Join the SparkLux Electrical Engineering Department and transform the world with sustainable energy and advanced power systems.
+                      Join the ElectroVerse Electrical Engineering Department and transform the world with sustainable energy and advanced power systems.
                     </p>
                   </div>
                 </div>

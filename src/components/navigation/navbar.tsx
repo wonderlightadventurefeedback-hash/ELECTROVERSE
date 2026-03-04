@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import GooeyNav from "@/components/ui/gooey-nav";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -30,10 +30,15 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -52,6 +57,21 @@ export function Navbar() {
       });
     }
   };
+
+  if (!mounted) {
+    return (
+      <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="h-8 w-8 text-secondary" />
+            <span className="font-headline text-2xl font-bold tracking-tight text-glow">
+              ELECTRO<span className="text-secondary">VERSE</span>
+            </span>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">

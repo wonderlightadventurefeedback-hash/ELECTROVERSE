@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, use, useState } from "react";
+import { useMemo, use, useState, useEffect } from "react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, Maximize2, X } from "lucide-react";
@@ -23,7 +23,7 @@ type Params = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function GalleryPage({ params }: { params: Params }) {
   // Explicitly unwrap params to comply with Next.js 15
-  use(params);
+  const unwrappedParams = use(params);
   
   const db = useFirestore();
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string; category: string } | null>(null);
@@ -79,7 +79,7 @@ export default function GalleryPage({ params }: { params: Params }) {
           <span className="text-secondary font-bold tracking-widest uppercase text-xs">Visual Journey</span>
           <h1 className="font-headline text-5xl font-bold text-glow">Achievement Gallery</h1>
           <p className="text-muted-foreground text-lg">
-            Explore our departmental milestones, cutting-edge facilities, and student innovations. A visual record of excellence at SparkLux Academics.
+            Explore our departmental milestones, cutting-edge facilities, and student innovations. A visual record of excellence at ElectroVerse.
           </p>
         </div>
       </div>

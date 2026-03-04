@@ -22,7 +22,7 @@ export function Footer() {
               <span className="font-headline text-xl font-bold">ELECTROVERSE</span>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Empowering the next generation of electrical engineers with world-class facilities and innovative pedagogy.
+              Empowering the next generation of electrical engineers with world-class facilities and innovative pedagogy at ElectroVerse.
             </p>
             <div className="flex gap-4">
               <Link href="#" className="p-2 bg-background rounded-full hover:text-secondary transition-colors">

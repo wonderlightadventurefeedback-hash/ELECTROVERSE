@@ -47,7 +47,7 @@ type Params = Promise<{ [key: string]: string | string[] | undefined }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentDashboard({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
-  // Explicitly unwrap params and searchParams to avoid enumeration errors in Next.js 15
+  // Explicitly unwrap promises to comply with Next.js 15
   use(params);
   use(searchParams);
 

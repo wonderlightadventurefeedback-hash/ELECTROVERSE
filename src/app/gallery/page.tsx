@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, use } from "react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import DomeGallery from "@/components/ui/dome-gallery";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,12 @@ import Link from "next/link";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
 
-export default function GalleryPage() {
+type Params = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function GalleryPage({ params }: { params: Params }) {
+  // Explicitly unwrap params to comply with Next.js 15
+  use(params);
+  
   const db = useFirestore();
 
   const galleryQuery = useMemoFirebase(() => {
@@ -22,15 +28,27 @@ export default function GalleryPage() {
   const displayImages = useMemo(() => {
     if (isLoading) return [];
     
-    // If we have images in Firestore, use them
+    let galleryImages: any[] = [];
+
+    // If we have images in Firestore, filter for gallery-related ones
     if (firestoreImages && firestoreImages.length > 0) {
-      return firestoreImages.map(img => ({
+      // Prioritize gallery categories
+      const specificGalleryItems = firestoreImages.filter(img => 
+        img.category === 'gallery-achievement' || 
+        img.category === 'gallery-event' || 
+        img.category === 'student-project'
+      );
+
+      // If no specific gallery items, use all available images
+      galleryImages = specificGalleryItems.length > 0 ? specificGalleryItems : firestoreImages;
+
+      return galleryImages.map(img => ({
         src: img.url,
         alt: img.altText || img.description
       }));
     }
 
-    // Fallback to static placeholders
+    // Fallback to static placeholders if no Firestore data
     return PlaceHolderImages.filter(img => 
       img.id.startsWith('gallery') || img.id.startsWith('hero')
     ).map(img => ({

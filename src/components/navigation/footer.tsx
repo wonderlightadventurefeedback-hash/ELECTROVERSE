@@ -70,7 +70,7 @@ export function Footer() {
             <ul className="space-y-4 text-sm text-muted-foreground">
               <li className="flex items-center gap-3">
                 <MapPin className="h-4 w-4 text-secondary" />
-                <span>123 Tech Avenue, Innovation City, 560001</span>
+                <span>NIT BBSR , 751024</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-secondary" />

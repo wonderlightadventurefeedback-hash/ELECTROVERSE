@@ -82,11 +82,12 @@ export function HeroCarousel() {
                       {image.description}
                     </span>
                     <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight leading-tight">
-                      Igniting <span className="text-secondary text-glow">Innovations</span><br />
-                      Empowering <span className="text-primary-foreground">Futures</span>
+                      Nalanda Institute <br />
+                      Of <span className="text-secondary text-glow">Technology</span>
+                      <span className="block text-2xl md:text-3xl text-muted-foreground mt-4">Bhubaneswar</span>
                     </h1>
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-                      Join the ElectroVerse Electrical Engineering Department and transform the world with sustainable energy and advanced power systems.
+                      Bhubaneswar's premier destination for Electrical Engineering excellence. Join the ElectroVerse community and transform the world.
                     </p>
                   </div>
                 </div>

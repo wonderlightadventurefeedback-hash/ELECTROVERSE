@@ -47,7 +47,7 @@ type Params = Promise<{ [key: string]: string | string[] | undefined }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentDashboard({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
-  // Explicitly unwrap promises to comply with Next.js 15
+  // Unwrap promises to comply with Next.js 15
   use(params);
   use(searchParams);
 
@@ -89,7 +89,6 @@ export default function StudentDashboard({ params, searchParams }: { params: Par
     if (!db || !user) return;
     setIsSaving(true);
     const docRef = doc(db, "users", user.uid, "studentProfile", user.uid);
-    // Keep internal stats (cgpa, attendance) and set ID/Email for admin visibility
     const payload = { 
       ...formData, 
       id: user.uid, 
@@ -199,7 +198,7 @@ export default function StudentDashboard({ params, searchParams }: { params: Par
             </div>
             <div>
               <h1 className="font-headline text-3xl font-bold">Academic Portal</h1>
-              <p className="text-muted-foreground italic text-sm">Live overview of your performance and credentials.</p>
+              <p className="text-muted-foreground italic text-sm">Live overview of your performance and credentials at ELECTROVERSE.</p>
             </div>
           </div>
 

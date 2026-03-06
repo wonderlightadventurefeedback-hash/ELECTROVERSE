@@ -69,7 +69,7 @@ type Params = Promise<{ [key: string]: string | string[] | undefined }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function AdminDashboard({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
-  // Explicitly unwrap promises to comply with Next.js 15
+  // Unwrap promises to comply with Next.js 15
   use(params);
   use(searchParams);
 
@@ -90,7 +90,6 @@ export default function AdminDashboard({ params, searchParams }: { params: Param
     subjects: [{ code: "", name: "", marks: "" }]
   });
 
-  // Media Management State
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [editingImage, setEditingImage] = useState<any>(null);
   const [imageForm, setImageForm] = useState({
@@ -100,14 +99,12 @@ export default function AdminDashboard({ params, searchParams }: { params: Param
     category: "homepage-carousel"
   });
 
-  // Fetch all student profiles using collectionGroup
   const studentsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collectionGroup(db, "studentProfile"));
   }, [db]);
   const { data: students, isLoading: isStudentsLoading } = useCollection(studentsQuery);
 
-  // Fetch all images
   const imagesQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, "images");
@@ -215,7 +212,7 @@ export default function AdminDashboard({ params, searchParams }: { params: Param
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="font-headline text-4xl font-bold text-glow">Admin Control Panel</h1>
-          <p className="text-muted-foreground">Managing ElectroVerse Academic Registry & Media Library.</p>
+          <p className="text-muted-foreground">Managing ELECTROVERSE Academic Registry & Media Library.</p>
         </div>
       </div>
 
@@ -364,7 +361,6 @@ export default function AdminDashboard({ params, searchParams }: { params: Param
         </TabsContent>
       </Tabs>
 
-      {/* Image Management Dialog */}
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
@@ -410,129 +406,6 @@ export default function AdminDashboard({ params, searchParams }: { params: Param
               </Button>
             </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Result Management Dialog */}
-      <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
-        <DialogContent className="bg-card border-border max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Publish Results</DialogTitle>
-            <DialogDescription>Save individual marks for {resultStudent?.firstName}'s profile.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSaveResult} className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Academic Session</Label>
-                <Select value={resultForm.session} onValueChange={(v) => setResultForm({...resultForm, session: v})}>
-                  <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2024-25">2024-25</SelectItem>
-                    <SelectItem value="2023-24">2023-24</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Exam Type</Label>
-                <Select value={resultForm.examType} onValueChange={(v) => setResultForm({...resultForm, examType: v})}>
-                  <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="semester">Semester Exam</SelectItem>
-                    <SelectItem value="internal">Internal Assessment</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <Label>Subject-wise Marks</Label>
-                <Button type="button" variant="outline" size="sm" onClick={() => setResultForm({...resultForm, subjects: [...resultForm.subjects, { code: "", name: "", marks: "" }]})}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Subject
-                </Button>
-              </div>
-              {resultForm.subjects.map((sub, i) => (
-                <div key={i} className="flex gap-2 items-end">
-                  <div className="flex-1 space-y-1">
-                    <Label className="text-[10px] uppercase">Code</Label>
-                    <Input placeholder="EE301" value={sub.code} onChange={(e) => {
-                      const newSubs = [...resultForm.subjects];
-                      newSubs[i].code = e.target.value;
-                      setResultForm({...resultForm, subjects: newSubs});
-                    }} className="bg-background h-8 text-xs" />
-                  </div>
-                  <div className="flex-[2] space-y-1">
-                    <Label className="text-[10px] uppercase">Name</Label>
-                    <Input placeholder="Power Systems" value={sub.name} onChange={(e) => {
-                      const newSubs = [...resultForm.subjects];
-                      newSubs[i].name = e.target.value;
-                      setResultForm({...resultForm, subjects: newSubs});
-                    }} className="bg-background h-8 text-xs" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <Label className="text-[10px] uppercase">Marks (%)</Label>
-                    <Input type="number" placeholder="85" value={sub.marks} onChange={(e) => {
-                      const newSubs = [...resultForm.subjects];
-                      newSubs[i].marks = e.target.value;
-                      setResultForm({...resultForm, subjects: newSubs});
-                    }} className="bg-background h-8 text-xs" />
-                  </div>
-                  {resultForm.subjects.length > 1 && (
-                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
-                      const newSubs = resultForm.subjects.filter((_, idx) => idx !== i);
-                      setResultForm({...resultForm, subjects: newSubs});
-                    }}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <DialogFooter className="pt-4">
-              <Button type="submit" className="w-full gap-2 bg-primary hover:bg-primary/90" disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Publish Results to Portal
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Student Stats Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-card border-border">
-          <DialogHeader><DialogTitle>Update Academic Stats</DialogTitle></DialogHeader>
-          {editingStudent && (
-            <form onSubmit={handleSaveStudent} className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Current CGPA</Label>
-                  <Input type="number" step="0.01" value={editingStudent.cgpa} onChange={(e) => setEditingStudent({...editingStudent, cgpa: e.target.value})} className="bg-background" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Attendance (%)</Label>
-                  <Input type="number" step="0.1" value={editingStudent.attendancePercentage} onChange={(e) => setEditingStudent({...editingStudent, attendancePercentage: e.target.value})} className="bg-background" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Semester</Label>
-                <Select value={editingStudent.semester} onValueChange={(v) => setEditingStudent({...editingStudent, semester: v})}>
-                  <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Array.from({length: 8}, (_, i) => `${i+1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Semester`).map(sem => (
-                      <SelectItem key={sem} value={sem}>{sem}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <DialogFooter>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isLoading}>
-                  {isLoading ? "Saving..." : "Save Academic Stats"}
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -25,7 +25,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h4 className="font-bold mb-1">Office Location</h4>
-                  <p className="text-sm text-muted-foreground">Electrical Block A, 3rd Floor<br />SparkLux Tech Campus</p>
+                  <p className="text-sm text-muted-foreground">Electrical Block A, 3rd Floor<br />NIT BBSR Campus</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -43,7 +43,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h4 className="font-bold mb-1">Email Support</h4>
-                  <p className="text-sm text-muted-foreground">admissions@sparklux.edu<br />admin@sparklux.edu</p>
+                  <p className="text-sm text-muted-foreground">admissions@electroverse.edu<br />admin@electroverse.edu</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">

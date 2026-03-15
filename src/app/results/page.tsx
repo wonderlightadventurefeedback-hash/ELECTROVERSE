@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, FileX, GraduationCap, FileText } from "lucide-react";
+import { Search, FileX, GraduationCap, FileText } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Image from "next/image";
 
 type Params = Promise<{ [key: string]: string | string[] | undefined }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -99,7 +100,14 @@ export default function ResultsPage({ params, searchParams }: { params: Params; 
     <div className="min-h-[80vh] bg-[#F4F7F9] dark:bg-background">
       <div className="container mx-auto px-4 py-16 space-y-8">
         <div className="flex items-center gap-3">
-          <FileText className="h-8 w-8 text-[#E05B3E]" />
+          <div className="relative h-10 w-10">
+            <Image 
+              src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+              alt="ElectroVerse Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
           <h2 className="text-[#E05B3E] font-bold text-2xl uppercase tracking-tight font-headline">
             STUDENTS RESULT SUMMARY
           </h2>
@@ -160,7 +168,14 @@ export default function ResultsPage({ params, searchParams }: { params: Params; 
                   className="bg-[#7F56D9] hover:bg-[#6941C6] text-white px-10 h-12 rounded-md font-bold shadow-md min-w-[180px] gap-2 transition-all active:scale-95"
                 >
                   {isSearching ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <div className="relative h-6 w-6 animate-spin">
+                      <Image 
+                        src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+                        alt="Loading"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
                   ) : (
                     <Search className="h-5 w-5" />
                   )}

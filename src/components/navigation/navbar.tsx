@@ -133,7 +133,14 @@ export function Navbar() {
         {/* Mobile Nav */}
         <div className="lg:hidden flex items-center gap-4">
           <Link href={user ? "/dashboard/student" : "/auth/login"}>
-            <UserCircle className="h-6 w-6 text-secondary" />
+            <div className="relative h-8 w-8 rounded-full border border-secondary/30 overflow-hidden">
+              <Image 
+                src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+                alt="Profile"
+                fill
+                className="object-contain"
+              />
+            </div>
           </Link>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>

@@ -7,8 +7,9 @@ import { generateElectricalStudyResource, ElectricalStudyResourceGeneratorOutput
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BrainCircuit, Search, Loader2, Sparkles, BookOpen, Calculator, Lightbulb } from "lucide-react";
+import { BrainCircuit, Search, Sparkles, BookOpen, Calculator, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 export default function AITutorPage() {
   const [query, setQuery] = useState("");
@@ -61,7 +62,16 @@ export default function AITutorPage() {
             onClick={handleAnalyze}
             disabled={isLoading}
           >
-            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : <Search className="h-5 w-5" />}
+            {isLoading ? (
+              <div className="relative h-6 w-6 animate-spin">
+                <Image 
+                  src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+                  alt="Loading"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ) : <Search className="h-5 w-5" />}
           </Button>
         </div>
       </div>
@@ -161,7 +171,14 @@ export default function AITutorPage() {
 
       {isLoading && (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
-          <Loader2 className="h-12 w-12 text-secondary animate-spin" />
+          <div className="relative h-16 w-16 animate-spin">
+            <Image 
+              src="https://img.sanishtech.com/u/9f0b300f902c453fd35e891c43099af1.png"
+              alt="Loading"
+              fill
+              className="object-contain"
+            />
+          </div>
           <p className="text-muted-foreground animate-pulse font-medium">ElectroVerse AI is generating your comprehensive tutor guide...</p>
         </div>
       )}

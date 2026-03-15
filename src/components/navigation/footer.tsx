@@ -25,6 +25,7 @@ export function Footer() {
                   alt="ElectroVerse Logo"
                   fill
                   className="object-contain"
+                  unoptimized
                 />
               </div>
               <span className="font-headline text-xl font-bold">ELECTROVERSE</span>

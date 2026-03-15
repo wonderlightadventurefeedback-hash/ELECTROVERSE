@@ -70,6 +70,7 @@ export function Navbar() {
                 alt="ElectroVerse Logo"
                 fill
                 className="object-contain"
+                unoptimized
               />
             </div>
             <span className="font-headline text-2xl font-bold tracking-tight text-glow">
@@ -91,6 +92,8 @@ export function Navbar() {
               alt="ElectroVerse Logo"
               fill
               className="object-contain"
+              priority
+              unoptimized
             />
           </div>
           <span className="font-headline text-2xl font-bold tracking-tight text-glow">
@@ -139,6 +142,7 @@ export function Navbar() {
                 alt="Profile"
                 fill
                 className="object-contain"
+                unoptimized
               />
             </div>
           </Link>
@@ -157,6 +161,7 @@ export function Navbar() {
                       alt="ElectroVerse Logo"
                       fill
                       className="object-contain"
+                      unoptimized
                     />
                   </div>
                   ELECTROVERSE
